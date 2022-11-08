@@ -1,0 +1,205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="es" xml:lang="es" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>INSCRIPCIÓN</title>
+<link rel="shortcut icon" href="../favicon.ico" type="image/x-icon" />
+<meta http-equiv="content-language" content="es" />
+<link rel="stylesheet" href="../css/miestilo.css">
+<style type="text/css">
+    table th {
+      text-align: left;
+    }
+</style>
+
+<script src="../js/jsencrypt.min.js"></script>
+<script type="text/javascript" src="../js/jspdf.debug.js"></script>
+
+
+<script type="text/javascript" src="../mijs/generador.js"></script>
+<script type="text/javascript" src="../mijs/validar.js"></script>
+<script type="text/javascript" src="../mijs/encriptador.js"></script>
+<script type="text/javascript" src="../mijs/centros.js"></script>
+<script type="text/javascript" src="../mijs/desencriptakk.js"></script><!-- para pruebas -->
+
+<script type="text/javascript" src="clave_pub.js" ></script>
+<script languaje="javascript" src="../cifrado/aes.js">/* AES JavaScript implementation */</script>
+<script languaje="javascript" src="../cifrado/aes-ctr.js">/* AES Counter Mode implementation */</script>
+<script type="text/javascript" src="../js/md5.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+<script type="text/javascript" src="../js/jquery.qrcode.min.js"></script>
+
+<script type="text/javascript">
+//var LOCALIDAD='TORRELODONES';
+var NUM_SOL=0;
+var DatosSolicitud;
+function A(elementoIframe){ alert('alertaaa')
+	DatosSolicitud=elementoIframe;
+	NUM_SOL=DatosSolicitud[2];
+	//getImageFromUrl('LogoGymk18.jpg', generaPDF);
+}
+function LimpiaParticipantes(){
+	for (var i=1;i<5;i++){
+		document.getElementById('Ap'+i+'1').value='';
+		document.getElementById('Ap'+i+'2').value='';
+		document.getElementById('Nombre'+i).value='';
+	}
+	NUM_SOL=0;
+}
+
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body class="exe-single-page">
+
+<div align="center"><img src="cabecera.svg" ></div>
+<hr/>
+TIPO DE EQUIPO<br/>
+ <form action="#" target="_blank"> 
+ <input type="radio" name="tipo" id="primaria" value="primaria" onchange="NUM_SOL=0;"> Equipo de Ed. Primaria de Centro (4 alumnos de Ed. Primaria del mismo Centro Educativo)<br>
+  <input type="radio" name="tipo" id="secundaria" value="secundaria" onchange="NUM_SOL=0;"> Equipo de Ed. Secundaria de Centro (4 alumnos de Ed. Secundaria del mismo Centro Educativo )<br/>
+<hr>
+CENTRO:<br>
+          <p>Tipo
+            <select name="tipoC" id="tipoC" onclick="desactivaTemp();"
+              onchange="document.getElementById('cod_centro').value=''; Candidatos()">
+            </select>
+            Nombre: <input name="nombre_centro2" id="nombre_centro2" onclick="if(!temporizador){document.getElementById('cod_centro').value='';temporizador=setInterval(Candidatos, 500)}"
+              onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();Candidatos()"
+              maxlength="50" size="40"> CÓDIGO: <input name="cod_centro" id="cod_centro"
+              maxlength="8" size="8" onchange="Candidatos()"><a href="https://gestiona.comunidad.madrid/wpad_pub/run/j/MostrarConsultaGeneral.icm?tipoCurso=ADM&sinboton=S"
+              target="_BLANK" title="Buscador de Centros Comunidad de Madrdid"><img
+                src="../img/find.png" align="middle"></a>
+              Localidad: <input name="loc_centro" id="loc_centro" onchange="NUM_SOL=0;this.value=this.value.toUpperCase().trim();Candidatos()"
+              maxlength="30" size="30" onclick="if(!temporizador){document.getElementById('cod_centro').value='';temporizador=setInterval(Candidatos, 500)}"><input id="nombre_centro" name="nombre_centro" type="hidden" value=""></p>
+    <p><br>
+    </p>
+    <span id="centros"></span>
+<hr>
+
+DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
+ <table style="width:100%">
+  <tr>
+    <th><br/></th>
+    <th>Apellido1</th>
+    <th>Apellido2</th>
+    <th>Nombre</th>
+    <th>Edad</th>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td><input name="Ap11" id="Ap11" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Ap12" id="Ap12" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Nombre1" id="Nombre1" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Edad1" id="Edad1" maxlength="2" size="2"></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td><input name="Ap21" id="Ap21" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Ap22" id="Ap22" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Nombre2" id="Nombre2" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Edad2" id="Edad2" maxlength="2" size="2"></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td><input name="Ap31" id="Ap31" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Ap32" id="Ap32" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Nombre3" id="Nombre3" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Edad3" id="Edad3" maxlength="2" size="2"></td>
+   </tr>
+  <tr>
+    <td>4</td>
+    <td><input name="Ap41" id="Ap41" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Ap42" id="Ap42" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Nombre4" id="Nombre4" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></td>
+    <td><input name="Edad4" id="Edad4" maxlength="2" size="2"></td>
+  </tr>
+</table>
+<p>PERSONA DE CONTACTO: <p/>
+<p>Primer apellido: <input name="ApP1" id="ApP1" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"> Segundo apellido: <input name="ApP2" id="ApP2" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"> Nombre: <input name="NomP" id="NomP" onchange="NUM_SOL=0; this.value=this.value.toUpperCase().trim();" maxlength="20" size="20"></p>  
+<p>Telefonos de contacto: <input name="TelP1" id="TelP1" maxlength="9" size="9"> / <input name="TelP2" id="TelP2" maxlength="9"  size="9"> Correo e.: <input name="EmailP" id="EmailP" onchange="NUM_SOL=0;this.value=this.value.toLowerCase().trim();"maxlength="50"  size="50"></p><hr/>
+<!--<input name="Genera PDF" value="Genera PDF" type="button" onclick="if((+NUM_SOL)===0){if(validaCampos()){ }}else{getImageFromUrl('LogoGymk18.jpg', generaPDF);};">-->
+<input name="Genera PDF" value="Genera PDF" type="button" onclick="if((+NUM_SOL)===0){if(validaCampos()){ 
+  dd=generaDatos();
+  document.getElementById('pubkey').value=`${clavePub}\nAES: ${dd.AES}\nencr: ${dd.encr}\nmd5: ${dd.clave}\ndatos: ${dd.datos}\nvalor: ${dd.valor}\ndcc: ${dd.dcc}`;
+  anyadirSolicitud();
+  alert('se solicitó: '+NUM_SOL+'mm');
+  }}else{getImageFromUrl('LogoGymk18.jpg', generaPDF);};">
+<input name="Limpia los participantes" value="Limpia los participantes." type="button" onclick="LimpiaParticipantes();"><input type="reset" value="Limpia los campos." onclick="NUM_SOL=0;"><br>
+<span id="qr"></span><br>
+</form>
+<form id="grabador" action="conectando2.php" target="CargaBD" method="POST">
+	<input type="hidden" id="nVisita" name="nVisita" value="0">
+	<input type="hidden" id="CLAVE" name="CLAVE" value="0">
+	<input type="hidden" id="mensajeCRP" name="mensajeCRP" value="0">
+</form>
+
+<iframe name="CargaBD" id="CargaBD" src="info.html"  width="100%" height="500px"></iframe>
+ 
+
+ <div style="visibility: visible;"><textarea id="pubkey" rows="15" cols="65"><?php  include "clave_pub.pem"; ?></textarea></div>
+
+<script languaje="javascript">
+PonTipos();///para que salgan los tipos de centros
+clavePub=clave_pub;
+let dd=generaDatos();
+document.getElementById('pubkey').value=`${clavePub}\nAES: ${dd.AES}\nencr: ${dd.encr}\nmd5: ${dd.clave}\ndatos: ${dd.datos}\nvalor: ${dd.valor}\ndcc: ${dd.dcc}`;
+//generaDatos();
+/// funcion para enviar la inscripción con ajax mediante fetch
+async function anyadirSolicitud() {
+    // Realiza la petición
+    //const miFetch = await fetch('https://jsonplaceholder.typicode.com/users', {
+    const miFetch = await fetch(getAbsolutePath()+'create.html', {
+      headers: {
+        'Content-type': 'application/json'
+      },
+      method: 'POST',
+      //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
+      body: JSON.stringify(dd)
+    });
+    // Transforma la respuesta. En este caso lo convierte a JSON
+    const json = await miFetch.json();
+    // Imprimo por consola
+    console.log(json);
+    //alert(Aes.Ctr.decrypt(json.valor,desencriptakk(json.encr),256));
+    let resultado=JSON.parse(Aes.Ctr.decrypt(json.valor,desencriptakk(json.encr),256));
+    alert(JSON.stringify(resultado));
+    NUM_SOL=json.nsol;
+   
+    console.log('se completa');
+    ponQR(getAbsolutePath()+`?contador=${json.nsol}&clave=${json.clave}`);resultadoBD=tomaQR(getAbsolutePath()+`?contador=${json.nsol}&clave=${json.clave}`,json.nsol,json.clave);/*window.top.window.*/A(resultadoBD); 
+    getImageFromUrl('LogoGymk18.jpg', generaPDF);
+    //getImageFromUrl(getAbsolutePath()+'LogoGymk18.jpg', generaPDF);
+    //c,'<?php echo $URL."?contador=".$nVisita."&clave=".$CLAVE; ?>',<?php echo $nVisita.", ".$CLAVE; ?> ]; 
+    //return json;
+}
+/// para obtener la ruta de la yinkhana
+function getAbsolutePath() {
+    var loc = window.location;
+    var pathName = loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1);
+    return loc.href.substring(0, loc.href.length - ((loc.pathname + loc.search + loc.hash).length - pathName.length));
+}
+//alert(getAbsolutePath());
+
+///estaban en el php devuelto a ajecutar con la funcion A
+function ponQR(url){
+	jQuery('#qr').html('');
+	//jQuery('#qr').qrcode('<?php echo $URL."?contador=".$nVisita."&clave=".$CLAVE;?>');
+  jQuery('#qr').qrcode(url);
+}
+//ponQR();
+
+function tomaQR(url,cont,clave){
+	var c=$('#qr').children('canvas');
+	c=document.getElementById('qr').firstChild.toDataURL();
+	//return [c,'<?php echo $URL."?contador=".$nVisita."&clave=".$CLAVE; ?>',<?php echo $nVisita.", ".$CLAVE; ?> ]; 
+  return [c,url,cont, clave  ]; 
+}
+var resultadoBD;//=tomaQR();
+
+</script>
+
+</body>
+</html>

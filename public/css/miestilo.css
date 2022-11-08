@@ -1,0 +1,155 @@
+progress[value] {
+/* Eliminamos la apariencia por defecto */
+-webkit-appearance: none;
+-moz-appearance: none;
+appearance: none;
+
+/* Quitamos el borde que aparece en Firefox */
+border: none;
+
+/* Aplicamos las dimensiones */
+width: 250px;
+height: 20px;
+
+/* Aplicamos color a la barra */
+color: blue;
+}
+
+/* Compatibilidad de color en Firefox y Chrome */
+progress::-moz-progress-bar { background: #0063a6; }
+progress::-webkit-progress-value { background: #0063a6; }
+
+
+
+
+th{
+	background-color: #bcffeb;
+}
+
+.ordenable{
+	background-color: #5858e6;
+	cursor:pointer; 
+	cursor: hand;
+	border-radius: 5px 5px 5px 5px;
+	-moz-border-radius: 5px 5px 5px 5px;
+	-webkit-border-radius: 5px 5px 5px 5px;
+	border: 0px solid #000000;
+	 box-shadow: .03em .03em .15em #555;
+}
+.ordenable:hover{
+  	background-color: #988816;
+    box-shadow: .05em .05em .2em #111;
+}
+.editable{
+	background-color: #dddddd;
+	cursor:pointer; 
+	cursor: hand;
+	border-radius: 5px 5px 5px 5px;
+	-moz-border-radius: 5px 5px 5px 5px;
+	-webkit-border-radius: 5px 5px 5px 5px;
+	border: 0px solid #000000;
+	 box-shadow: .03em .03em .15em #555;
+}
+.editable:hover{
+  	background-color: #bbbbbb;
+    box-shadow: .05em .05em .2em #111;
+}
+.GENERADA{
+	background-color: #fdf989;
+	border-radius: 10px 10px 10px 10px;
+	-moz-border-radius: 10px 10px 10px 10px;
+	-webkit-border-radius: 10px 10px 10px 10px;
+	border: 0px solid #000000;
+	 box-shadow: .03em .03em .15em #111;
+}
+.RECIBIDA{
+	background-color: #9cf59c;
+	border-radius: 10px 10px 10px 10px;
+	-moz-border-radius: 10px 10px 10px 10px;
+	-webkit-border-radius: 10px 10px 10px 10px;
+	border: 0px solid #000000;
+	 box-shadow: .03em .03em .15em #111;
+}
+.ADMITIDA{
+	background-color: #35ae35;
+	border-radius: 10px 10px 10px 10px;
+	-moz-border-radius: 10px 10px 10px 10px;
+	-webkit-border-radius: 10px 10px 10px 10px;
+	border: 0px solid #000000;
+	 box-shadow: .03em .03em .15em #111;
+}
+.LESPERA{
+	background-color: #f29cf5;
+	border-radius: 10px 10px 10px 10px;
+	-moz-border-radius: 10px 10px 10px 10px;
+	-webkit-border-radius: 10px 10px 10px 10px;
+	border: 0px solid #000000;
+	 box-shadow: .03em .03em .15em #111;
+}
+.ANULADA{
+	background-color: #f36767;
+	border-radius: 10px 10px 10px 10px;
+	-moz-border-radius: 10px 10px 10px 10px;
+	-webkit-border-radius: 10px 10px 10px 10px;
+	border: 0px solid #000000;
+	 box-shadow: .03em .03em .15em #111;
+}
+.DESPLAZADA{
+	background-color: #a8e2fa;
+	border-radius: 10px 10px 10px 10px;
+	-moz-border-radius: 10px 10px 10px 10px;
+	-webkit-border-radius: 10px 10px 10px 10px;
+	border: 0px solid #000000;
+	 box-shadow: .03em .03em .15em #111;
+}
+.primaria{
+	background-color: #e0aad2;
+}
+.secundaria{
+	background-color: #a6ddf5;
+}
+
+.adultos{
+	background-color: #ffff88;
+}
+
+.cabecera {
+    margin-top: .1em;
+    margin-bottom: .1em;
+    margin-left: .1em;
+    margin-right: .1em;
+    padding-top: .1em;
+    padding-bottom: .1em;
+    padding-left: .1em;
+    padding-right: .1em;
+    border-radius:.5em;
+    box-shadow: .05em .05em .25em #666;          /* Sombra normal */
+   
+}
+.boton {
+    vertical-align: middle;
+    margin-top: .1em;
+    margin-bottom: .1em;
+    margin-left: .1em;
+    margin-right: .1em;
+    padding-top: .03em;
+    padding-bottom: .03em;
+    padding-left: .03em;
+    padding-right: .03em;
+    border-radius:.5em;
+    box-shadow: .03em .03em .15em #666;          /* Sombra normal */
+}
+.boton:hover {
+    background-color: #faf981;
+    box-shadow: .03em .03em .15em #111;
+}
+
+.flex-container {
+  display: flex;
+}
+.pueblos{
+  //display: flex;
+  text-align: center;
+}
+
+
