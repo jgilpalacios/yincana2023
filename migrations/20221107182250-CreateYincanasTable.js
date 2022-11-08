@@ -27,6 +27,10 @@ module.exports = {
             type: Sequelize.STRING,
             validate: {notEmpty: {msg: "La localidad de la yincana no debe faltar"}}
           },
+          clavePublica: {
+            type: Sequelize.STRING,
+            validate: {notEmpty: {msg: "La clave pública de la yincana no debe faltar"}}
+          },
           createdAt: {
             type: Sequelize.DATE,
             allowNull: false

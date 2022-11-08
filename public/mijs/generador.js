@@ -131,7 +131,7 @@ function lee(){
 	EmailP=document.getElementById('EmailP').value;
 }
 
-var generaPDF = function (imgData){alert('se invoca');
+var generaPDF = function (imgData){//alert('se invoca');
 
 	var doc = new jsPDF(); 
 	doc.addImage(imgData, 'JPEG', 0, 0, 200, 297, 'monkey'); 
@@ -235,11 +235,11 @@ var generaPDF = function (imgData){alert('se invoca');
 	doc.text(10, 242, 'Comunidad de Madrid.');
 	doc.text(10, 246, 'La participación en la Yincana implica la autorización expresa a la organización para la toma y difusión de fotos o vídeos de los participantes con');
 	doc.text(10, 249, 'carácter exclusivamente informativo o promocional sobre el evento.');
-	doc.text(20, 252, 'Puede consultar el estado de la solicitud escaneando el codigo QR o visitando:');alert('se llega1');
+	doc.text(20, 252, 'Puede consultar el estado de la solicitud escaneando el codigo QR o visitando:');//alert('se llega1');
 	doc.setFontType("bold");doc.text(25, 255, DatosSolicitud[1]);doc.setFontType("normal");
 
 	if(DatosSolicitud[0]) doc.addImage(DatosSolicitud[0], 'JPEG', 85, 260, 30, 30);
-	alert('se llega');
+	//alert('se llega');
 	
 	doc.output('save', 'SOLICITUD'+NUM_SOL+'.pdf');
 	

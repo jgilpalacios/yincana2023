@@ -6,12 +6,26 @@ const { sequelize } = require("../models/connection");
 
 // GET / home page. 
 exports.index = async (req, res, next) => {
-    res.render('index'/*, { title: 'Express' }*/);
+    try {
+        const nYincanas = await models.Yincana.count();
+        res.render('index', { nYincanas }); 
+
+    } catch (error) {
+        console.log(error);
+    }
+    
 };
 
 //GET /yinkanaId/index.html
 exports.hoja = async (req, res, next) => {
-    res.render('hoja'/*, { title: 'Express' }*/);
+    let yincanaId = req.params.yincanaId;
+    try {
+        let yincana = await models.Yincana.findByPk(yincanaId);
+        res.render('hoja', { clave_pub: yincana.clavePublica, yincanaId });
+    } catch (error) {
+        console.log(error);
+    }
+    
 };
 
 // POST /yinkanaId/create

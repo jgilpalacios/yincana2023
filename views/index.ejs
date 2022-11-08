@@ -1,15 +1,3 @@
-<!DOCTYPE html>
-<!--<html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </body>
-</html>-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html lang="es" xml:lang="es" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -24,14 +12,16 @@
 <div class="cabecera"><img src="img/cabecera.svg" width="100%"></div>
 
  <div class="flex-container" width="100%">
-  <div width="30%" class="cabecera pueblos"><img src="1/ayuntamiento.svg" width="100%"><div class="boton"><a href="1/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="1/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="1/index.html" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>
-  <div width="30%" class="cabecera pueblos"><img src="BOADILLA/ayuntamiento.svg" width="100%"><div class="boton"><a href="BOADILLA/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="BOADILLA/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="BOADILLA/index.php" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>
+  <% for(let i=0;i<nYincanas;i++){%>
+  <div width="30%" class="cabecera pueblos"><img src="<%= (+i+1) %>/ayuntamiento.svg" width="100%"><div class="boton"><a href="<%= (+i+1) %>/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="<%= (+i+1) %>/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="<%= (+i+1) %>/index.html" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>
+  <% } %>
+  <!--<div width="30%" class="cabecera pueblos"><img src="BOADILLA/ayuntamiento.svg" width="100%"><div class="boton"><a href="BOADILLA/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="BOADILLA/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="BOADILLA/index.php" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>
   <div width="30%" class="cabecera pueblos"><img src="COLLADOVILLALBA/ayuntamiento.svg" width="100%"><div class="boton"><a href="COLLADOVILLALBA/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="COLLADOVILLALBA/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="COLLADOVILLALBA/index.php" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>
   <div width="30%" class="cabecera pueblos"><img src="ELESCORIAL/ayuntamiento.svg" width="100%"><div class="boton"><a href="ELESCORIAL/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="ELESCORIAL/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="ELESCORIAL/index.php" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>
   <div width="30%" class="cabecera pueblos"><img src="LASROZAS/ayuntamiento.svg" width="100%"><div class="boton"><a href="LASROZAS/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="LASROZAS/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="LASROZAS/index.php" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>
   <div width="30%" class="cabecera pueblos"><img src="POZUELO/ayuntamiento.svg" width="100%"><div class="boton"><a href="POZUELO/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="POZUELO/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="POZUELO/index.php" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>
   <div width="30%" class="cabecera pueblos"><img src="SANLORENZO/ayuntamiento.svg" width="100%"><div class="boton"><a href="SANLORENZO/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="SANLORENZO/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="SANLORENZO/index.php" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>
-  <div width="30%" class="cabecera pueblos"><img src="VALDEMORILLO/ayuntamiento.svg" width="100%"><div class="boton"><a href="VALDEMORILLO/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="VALDEMORILLO/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="VALDEMORILLO/index.php" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>
+  <div width="30%" class="cabecera pueblos"><img src="VALDEMORILLO/ayuntamiento.svg" width="100%"><div class="boton"><a href="VALDEMORILLO/Cartel.jpg" target="_blank"><img src="img/cartel.svg" width="40%" ></a></div><div class="boton"><a href="VALDEMORILLO/Triptico.pdf" target="_blank"><img src="img/Info.svg" width="40%" ></a></div><div class="boton"><a href="VALDEMORILLO/index.php" target="_blank"><img src="img/inscripcion.svg" width="40%" ></a></div></div>-->
 </div>
 
 

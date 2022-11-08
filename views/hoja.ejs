@@ -22,7 +22,7 @@
 <script type="text/javascript" src="../mijs/centros.js"></script>
 <script type="text/javascript" src="../mijs/desencriptakk.js"></script><!-- para pruebas -->
 
-<script type="text/javascript" src="clave_pub.js" ></script>
+<!--<script type="text/javascript" src="clave_pub.js" ></script>-->
 <script languaje="javascript" src="../cifrado/aes.js">/* AES JavaScript implementation */</script>
 <script languaje="javascript" src="../cifrado/aes-ctr.js">/* AES Counter Mode implementation */</script>
 <script type="text/javascript" src="../js/md5.js"></script>
@@ -31,10 +31,11 @@
 <script type="text/javascript" src="../js/jquery.qrcode.min.js"></script>
 
 <script type="text/javascript">
+let clave_pub=`<%= clave_pub %>`;
 //var LOCALIDAD='TORRELODONES';
 var NUM_SOL=0;
 var DatosSolicitud;
-function A(elementoIframe){ alert('alertaaa')
+function A(elementoIframe){ //alert('alertaaa')
 	DatosSolicitud=elementoIframe;
 	NUM_SOL=DatosSolicitud[2];
 	//getImageFromUrl('LogoGymk18.jpg', generaPDF);
@@ -125,7 +126,7 @@ DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
   dd=generaDatos();
   document.getElementById('pubkey').value=`${clavePub}\nAES: ${dd.AES}\nencr: ${dd.encr}\nmd5: ${dd.clave}\ndatos: ${dd.datos}\nvalor: ${dd.valor}\ndcc: ${dd.dcc}`;
   anyadirSolicitud();
-  alert('se solicitó: '+NUM_SOL+'mm');
+  //alert('se solicitó: '+NUM_SOL+'mm');
   }}else{getImageFromUrl('LogoGymk18.jpg', generaPDF);};">
 <input name="Limpia los participantes" value="Limpia los participantes." type="button" onclick="LimpiaParticipantes();"><input type="reset" value="Limpia los campos." onclick="NUM_SOL=0;"><br>
 <span id="qr"></span><br>
@@ -139,7 +140,7 @@ DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
 <iframe name="CargaBD" id="CargaBD" src="info.html"  width="100%" height="500px"></iframe>
  
 
- <div style="visibility: visible;"><textarea id="pubkey" rows="15" cols="65"><?php  include "clave_pub.pem"; ?></textarea></div>
+ <div style="visibility: visible;"><textarea id="pubkey" rows="15" cols="65"></textarea></div>
 
 <script languaje="javascript">
 PonTipos();///para que salgan los tipos de centros
@@ -164,7 +165,7 @@ async function anyadirSolicitud() {
     // Imprimo por consola
     console.log(json);
     //alert(Aes.Ctr.decrypt(json.valor,desencriptakk(json.encr),256));
-    let resultado=JSON.parse(Aes.Ctr.decrypt(json.valor,desencriptakk(json.encr),256));
+    let resultado=JSON.parse(Aes.Ctr.decrypt(json.valor,desencriptakk(json.encr, clavesPrivadas[<%= (+yincanaId-1) %>]),256));
     alert(JSON.stringify(resultado));
     NUM_SOL=json.nsol;
    
