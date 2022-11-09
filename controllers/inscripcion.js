@@ -83,6 +83,29 @@ exports.create = async (req, res, next/*, yinkanaId*/) => {
     }
 };
 
+//GET /yinkanaId/comprueba
+exports.comprueba = async (req, res, next) => {
+    let yincanaIdOrg = req.params.yincanaId;
+    const {query} = req;
+   
+    try {
+        let findOptions={};
+        findOptions.where = {[Op.and]: [
+            { nsol: query.contador },
+            { clave: query.clave }
+          ]};
+        let inscripcion = await models.Inscripcion.findAll(findOptions);
+        //console.log('++++++++++',JSON.stringify(inscripcion)+'\n'+inscripcion[0].yincanaId)
+        let yincana = await models.Yincana.findByPk(inscripcion[0].yincanaId);
+        //console.log('--------------'+JSON.stringify(yincana));
+        res.render('comprueba', { yincanaIdOrg, yincanaId: inscripcion[0].yincanaId, contador: query.contador, clave: query.clave , estado: inscripcion[0].estado, yincanaNombre: yincana.utilidad, nequipo: inscripcion[0].nequipo||0 });
+    
+    } catch (error) {
+        console.log(error);
+    }
+    
+};
+
 /*const paginate = require('../helpers/paginate').paginate;
 
 // Autoload el quiz asociado a :quizId

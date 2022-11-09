@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="es" xml:lang="es" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>CONSULTA</title>
+<link rel="shortcut icon" href="../favicon.ico" type="image/x-icon" />
+<meta http-equiv="content-language" content="es" />
+<link rel="stylesheet" href="../css/miestilo.css">
+</head>
+<% if(estado===0){ %>
+    <body class="GENERADA">HA GENERADO SU SOLICITUD Y AHORA DEBE:<br/>
+        <b>enviar el archivo <u>SOLICITUD<%= contador %>.pdf </u> por correo electrónico a</b>: <b><u>ctif.madridoeste@educa.madrid.org</u></b>.</p><p>Otras opciones para completar la inscripción son:<p>
+         <ul>
+            <li>Imprimir el pdf y enviarlo por fax al CTIF Madrid-Oeste (91 851 71 26)</li>
+            <li>Imprimir el pdf y traerlo personalmente al <a href="https://innovacionyformacion.educa.madrid.org/CTIF-Oeste" target="_blank">CTIF Madrid-Oeste</a> (de 8:00 a 15:00 de lunes a viernes).</li>
+        </ul>
+<% } else if(estado===1){ %>
+
+    <body class="RECIBIDA">EL CTIF MADRID-OESTE HA <b>RECIBIDO</b> SU SOLICITUD<br/>
+        Ahora se estudiará si el equipo cumple los requisitos para ser incluido en la Gymkana.';
+
+<% } else if(estado===2){ 
+    if(nequipo===0){ %>
+        echo '<body class="ADMITIDA">EL CTIF MADRID-OESTE HA <b>ADMITIDO</b> AL EQUIPO EN LA GYMKANA<br/>
+        Estamos a la espera de asignarle un número al equipo<br/>
+        ¡BUENA SUERTE EN LA GYMKANA!';
+   <% }else{ %>
+        echo '<body class="ADMITIDA">EL CTIF MADRID-OESTE HA <b>ADMITIDO</b> AL EQUIPO EN LA GYMKANA<br/>
+        <div align="center"><b><span style="font-size:33px; background-color:#ffff00;border-radius: 10px;border-bottom-left-radius:0px; box-shadow: 7px 7px #158e15;">&nbsp;- El número de equipo asignado es:&nbsp;</span>&nbsp;&nbsp;</b><strong><span style="font-size:66px; background-color:#ffffff; border-radius: 20px;border-bottom-right-radius:0px; box-shadow: 10px 10px #158e15;">&nbsp;<%= nequipo %>&nbsp;</span></strong></div><br/>
+        ¡BUENA SUERTE EN LA GYMKANA!';
+   <% } 
+} else if(estado===3){ %>
+    <body class="LESPERA">EL CTIF MADRID-OESTE HA RECIBIDO SU SOLICITUD PERO COMO YA SE HA LLEGADO<br>AL TOPE DE LOS EQUIPOS DE SU CENTRO, ESTE EQUIPO <b>ESTÁ EN LA LISTA DE ESPERA</b>;
+<% }else if(estado==4){ %>
+   <body class="ANULADA">SU SOLICITUD HA SIDO <b>ANULADA</b> PARA MÁS INFORMACIÓN CONTACTE CON EL <a href="https://innovacionyformacion.educa.madrid.org/CTIF-Oeste"target="_blank">CTIF MADRID-OESTE</a>.;
+<% } %>
+
+<p>Puede consultar el estado de su incripción contactando con el <a href="https://innovacionyformacion.educa.madrid.org/CTIF-Oeste" target="_blank">CTIF Madrid-Oeste</a> o entrando en:
+    <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="../<%=  yincanaId %>/comprueba?contador=<%= contador %>&clave=<%= clave %>" target="_blank"><span id="url">..</span><%=  yincanaId %>/comprueba?contador=<%= contador %>&clave=<%= clave %></a><br/>o <b>escaneado el código QR</b> de la solicitud con su dispositivo móvil.</p>
+<br>
+<div><img src="../<%=  yincanaId %>/cabecera.svg"  ></div>
+<script languaje="javascript">
+function getPathYinkana() {
+    var loc = window.location;//alert(JSON.stringify(loc));
+    return loc.protocol+'//'+loc.host+'/';
+}
+document.getElementById('url').innerHTML=getPathYinkana();
+function limpiar(){ 
+    document.body.innerHTML=document.body.innerHTML.split('<div>cortamos por aqui</div>')[0]; 
+}
+setTimeout(limpiar, 50);
+
+</script>
+<br/>
+<br/>
+<div>cortamos por aqui</div>
+<br/>
+<br/>
+
+</body>
+</html>            

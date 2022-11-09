@@ -16,6 +16,7 @@ router.get('/:yincanaId(\\d+)/index.html', inscripcionController.hoja);
 
 router.post('/:yincanaId(\\d+)/create.html',inscripcionController.create);
 
+router.get('/:yincanaId(\\d+)/comprueba', inscripcionController.comprueba);
 //router.get('/quizzes/new',                 quizController.new);
 //router.post('/quizzes',                    quizController.create);
 
