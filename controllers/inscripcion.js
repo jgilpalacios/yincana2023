@@ -106,6 +106,141 @@ exports.comprueba = async (req, res, next) => {
     
 };
 
+exports.admin = async (req, res, next) => {
+    try {
+       let yincanas = await models.Yincana.findAll();
+        //console.log('+++++++++++++++++', JSON.stringify(yincanas))
+        res.render('admin', { yincanas });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.adminGet = async (req, res, next) => {
+    const {yincana, estado, fechaIn, fechaFin}=req.body;
+    try {
+        let condicionesBusqueda=[{yincanaId: yincana}];
+        if (estado!=='' && +estado<5)
+        {
+            condicionesBusqueda.push({estado: estado});
+        } else {
+            if(+estado === 100){
+                condicionesBusqueda.push({ estado: {[Op.lt]: 4}});
+            }else if (+estado === 12){
+                condicionesBusqueda.push({[Op.or]: [{estado: 1},{estado: 2},{estado: 3}]});
+            }
+        }
+        if(fechaIn!==''){
+            condicionesBusqueda.push({solicitada: {[Op.gte]: fechaIn}});
+        }
+        if(fechaFin!==''){
+            condicionesBusqueda.push({solicitada: {[Op.lte]: fechaFin}});
+        }
+        let findOptions={};
+        findOptions.where = {[Op.and]: condicionesBusqueda}
+        
+        let inscripciones = await models.Inscripcion.findAll(findOptions);
+        //console.log('+++++++++',JSON.stringify(condicionesBusqueda));
+       //let yincanas = await models.Yincana.findAll();
+        //console.log('+++++++++++++++++', JSON.stringify(yincanas))
+        //res.render('admin', { yincanas });
+        res.send(JSON.stringify(inscripciones));
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.adminUpdate = async (req, res, next) => {
+    let inscripciones=[];
+    for (i in req.body){
+        if(req.body[i][0]==='ESTADO'){
+            if(!inscripciones[req.body[i][1]])inscripciones[req.body[i][1]]={};
+            inscripciones[req.body[i][1]].estado = +req.body[i][2];
+        }else if(req.body[i][0]==='NEQUIPO'){
+            if(!inscripciones[req.body[i][1]])inscripciones[req.body[i][1]]={};
+            inscripciones[req.body[i][1]].nequipo= +req.body[i][2];
+        }
+    }
+    
+    const t = await sequelize.transaction();
+    try{
+    let actualizamos=[];
+    for (j=0;j<inscripciones.length;j++){
+    //inscripciones.forEach(async (item, j) =>{
+        //if(item){
+          if(inscripciones[j]){
+            
+                let inscrip = await models.Inscripcion.findByPk(j);
+                let his_inscripcion = models.His_inscripcion.build({
+                    hid: inscrip.id,
+                    yincanaId: inscrip.yincanaId,
+                    nequipo: inscrip.nequipo,
+                    nsol: inscrip.nsol,
+                    clave: inscrip.clave,
+                    encr: inscrip.encr,
+                    valor: inscrip.valor,
+                    solicitada: inscrip.solicitada,
+                    recibida: inscrip.recibida,
+                    estado: inscrip.estado,
+                });
+                //console.log('++++++',JSON.stringify(inscrip));
+                //for (k in item){
+                for (k in inscripciones[j]){
+                    //inscrip[k]=item[k];
+                    inscrip[k]=inscripciones[j][k]
+                }
+                if(!inscrip.recibida) inscrip.recibida=new Date();
+                //inscrip =
+                await his_inscripcion.save(); 
+                await inscrip.save();
+                //console.log('-------',JSON.stringify(inscrip));
+                actualizamos.push(inscrip);
+                //console.log('-------',JSON.stringify(actualizamos));
+           
+            //actualizamos+=j+', ';
+        }
+    //});
+    }
+    t.commit();
+    //console.log('-------',JSON.stringify({inscripciones,actualizamos}));
+    res.send(JSON.stringify(actualizamos));
+    }catch(error){
+        t.rollback();
+        console.log(error);
+    }
+    
+    /*try {
+        let condicionesBusqueda=[{yincanaId: yincana}];
+        if (estado!=='' && +estado<5)
+        {
+            condicionesBusqueda.push({estado: estado});
+        } else {
+            if(+estado === 100){
+                condicionesBusqueda.push({ estado: {[Op.lt]: 4}});
+            }else if (+estado === 12){
+                condicionesBusqueda.push({[Op.or]: [{estado: 1},{estado: 2},{estado: 3}]});
+            }
+        }
+        if(fechaIn!==''){
+            condicionesBusqueda.push({solicitada: {[Op.gte]: fechaIn}});
+        }
+        if(fechaFin!==''){
+            condicionesBusqueda.push({solicitada: {[Op.lte]: fechaFin}});
+        }
+        let findOptions={};
+        findOptions.where = {[Op.and]: condicionesBusqueda}
+        
+        let inscripciones = await models.Inscripcion.findAll(findOptions);
+        console.log('+++++++++',JSON.stringify(condicionesBusqueda));
+       //let yincanas = await models.Yincana.findAll();
+        //console.log('+++++++++++++++++', JSON.stringify(yincanas))
+        //res.render('admin', { yincanas });
+        res.send(JSON.stringify(inscripciones));
+    } catch (error) {
+        console.log(error);
+    }*/
+};
+
 /*const paginate = require('../helpers/paginate').paginate;
 
 // Autoload el quiz asociado a :quizId

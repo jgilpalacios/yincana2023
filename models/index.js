@@ -20,9 +20,13 @@ const sequelize = new Sequelize(url);
 const Inscripcion = require(path.join(__dirname, 'inscripcion'))(sequelize, DataTypes);
 
 const Yincana = require(path.join(__dirname, 'yincana'))(sequelize, DataTypes);
+
+const His_inscripcion = require(path.join(__dirname, 'his_inscripcion'))(sequelize, DataTypes);
 // Relation 1-to-N between User and Quiz:
 Yincana.hasMany(Inscripcion, { as: 'inscripciones', foreignKey: 'yincanaId' });
 Inscripcion.belongsTo(Yincana, { as: 'localidad', foreignKey: 'yincanaId' });
 
+Inscripcion.hasMany(His_inscripcion, { as: 'his_inscripciones', foreignKey: 'hid' });
+His_inscripcion.belongsTo(Inscripcion, { as: 'identificador', foreignKey: 'hid' });
 
 module.exports = sequelize;
