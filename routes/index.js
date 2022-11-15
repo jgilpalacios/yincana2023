@@ -20,9 +20,11 @@ router.get('/:yincanaId(\\d+)/comprueba', inscripcionController.comprueba);
 
 router.get('/admin', inscripcionController.admin);
 
-router.post('/admin/get', inscripcionController.adminGet);
+router.post('/admin/get', inscripcionController.ponSesionUser, inscripcionController.adminGet);
 
-router.post('/admin/update', inscripcionController.adminUpdate);
+router.post('/admin/update', inscripcionController.ponSesionUser, inscripcionController.adminUpdate);
+
+router.post('/admin/quitaSesionUser', inscripcionController.quitaSesionUser);
 
 //router.get('/quizzes/new',                 quizController.new);
 //router.post('/quizzes',                    quizController.create);

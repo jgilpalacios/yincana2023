@@ -100,11 +100,11 @@ var TelP2;
 var EmailP;
 
 function lee(){
-	tipo="no elegido"
+	tipo="no elegido";
 	if(document.getElementById('primaria').checked) tipo='primaria';
 	if(document.getElementById('secundaria').checked) tipo='secundaria';
 	nombre_centro=document.getElementById('nombre_centro').value;
-	texto_centro=document.getElementById('nombre_centro2').value;
+	if(document.getElementById('nombre_centro2'))texto_centro=document.getElementById('nombre_centro2').value;
 	loc_centro=document.getElementById('loc_centro').value;
 	cod_centro=document.getElementById('cod_centro').value;
 	Ap11=document.getElementById('Ap11').value;

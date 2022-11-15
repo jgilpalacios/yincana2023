@@ -18,8 +18,8 @@
     <script src="../js/jsencrypt.min.js"></script>
     <script src="../mijs/desencriptakk.js"></script>
 
-    <!--<script type="text/javascript" src="../mijs/generador.js"></script>-->
-    <script type="text/javascript" src="../mijs/generadorAdultos.js"></script>
+    <script type="text/javascript" src="../mijs/generador.js"></script>
+    <!--<script type="text/javascript" src="../mijs/generadorAdultos.js"></script>-->
     <script type="text/javascript" src="../mijs/validar.js"></script>
     <script type="text/javascript" src="../mijs/encriptador.js"></script>
     <script type="text/javascript" src="../js/jspdf.debug.js"></script>
@@ -38,49 +38,43 @@
                 return dd.getDay() + '/' + (dd.getMonth() + 1) + '/' + dd.getFullYear() + ' ' + dd.getHours() + ':' + dd.getMinutes();
             } else return '';
         }
-        const cargaOperaciones= async ()=>{alert('se lanza')
-            if(operacionesPendientes){
-            const miFetch = await fetch(getAbsolutePath() + '/update', {
-                headers: {
-                    'Content-type': 'application/json'
-                },
-                method: 'POST',
-                //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
-                body: JSON.stringify(totalOperaciones)
-            });
-            // Transforma la respuesta. En este caso lo convierte a JSON
-            const json = await miFetch.json();
-            //alert('se han hecho:\n'+JSON.stringify(json));
-            json.forEach(inscripcion=>{
-                let actualiza=aPresentar.find(ins => ins.id === inscripcion.id);
-                //alert(JSON.stringify(actualiza));
-                //alert(JSON.stringify(inscripcion));
-                ['nequipo', 'estado','recibida'].forEach(item => {
-                        if(actualiza[item]!==inscripcion[item])actualiza[item] = inscripcion[item];
+        const cargaOperaciones = async () => {
+            alert('se lanza')
+            if (operacionesPendientes) {
+                const miFetch = await fetch(getAbsolutePath() + '/update', {
+                    headers: {
+                        'Content-type': 'application/json'
+                    },
+                    method: 'POST',
+                    //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
+                    body: JSON.stringify(totalOperaciones)
                 });
-            })
-            localStorage.setItem('inscripciones',JSON.stringify(inscripciones));
-            totalOperaciones = {};
-            operacionesPendientes = false;
-            //alert(JSON.stringify(aPresentar));
-            document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
-            
-        }else{
-            alert('nada que actualizar');
+                // Transforma la respuesta. En este caso lo convierte a JSON
+                const json = await miFetch.json();
+                if (json.autorizado) {
+                    //alert('se han hecho:\n'+JSON.stringify(json));
+                    json.actualizamos.forEach(inscripcion => {
+                        let actualiza = aPresentar.find(ins => ins.id === inscripcion.id);
+                        //alert(JSON.stringify(actualiza));
+                        //alert(JSON.stringify(inscripcion));
+                        ['nequipo', 'estado', 'recibida'].forEach(item => {
+                            if (actualiza[item] !== inscripcion[item]) actualiza[item] = inscripcion[item];
+                        });
+                    })
+                    localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
+                    totalOperaciones = {};
+                    operacionesPendientes = false;
+                    //alert(JSON.stringify(aPresentar));
+                    document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
+                } else {
+                    alert('clave incorrecta o yincana no atorizada');
+                    document.getElementById('decrip').innerHTML = 'Debe volver a poner las credenciales y recargar'
+                }
+            } else {
+                alert('nada que actualizar');
+            }
+
         }
-		//document.getElementById('instante').value=Math.floor(new Date().getTime()/1000);
-		/*var texto="";var n=0;var aux='';
-		for(var i in totalOperaciones){//alert(i);
-			aux=totalOperaciones[i][0]+'a'+totalOperaciones[i][1]+'a'+totalOperaciones[i][2];
-			if(n++==0){ texto+=aux;			
-			}else texto+='b'+aux;
-		}
-		//texto+=' ]';
-		document.getElementById('operaciones').value=texto;//alert(texto);
-		//document.getElementById('operaciones').value=JSON.stringify(totalOperaciones);
-		totalOperaciones={};
-		operacionesPendientes=false;*/
-	}
         const OrdLocal = (criterio) => { //alert('se emtra');
             //alert (criterio);
             //alert(miArrayDeObjetos[0]['ID']);
@@ -140,7 +134,7 @@
                 };//alert(id+accion);
                 let cuerpoAdd = `<td class="${accion}"><select onchange="registraOperacion(this.value);"><option value="ESTADO,${id}, -1" selected="selected"></option><option value="ESTADO,${id}, 0">GENERADA</option><option value="ESTADO,${id},1">RECIBIDA</option><option value="ESTADO,${id},2">ADMITIDA</option><option value="ESTADO,${id}, 3">L. ESPERA</option><option value="ESTADO,${id}, 4">ANULADA</option></select></td><td>${id}</td><td><input type="text" name="pin${id}" id="pin${id}" maxlength="3" size="3" onchange=";registraOperacion('NEQUIPO,${id}, '+this.value+'')" value="${inscripcion.nequipo || ''}"></td><td>${inscripcion.nsol}</td>
             <td>${inscripcion.clave.substring(0, 8)}<br>${inscripcion.clave.substring(8, 16)}<br>${inscripcion.clave.substring(16, 24)}<br>${inscripcion.clave.substring(24)}</td><td class="${inscripcion.tipo}">${inscripcion.tipo.substring(0, 1).toUpperCase()}</td>
-                    <td>${inscripcion.cod_centro}<br> ${inscripcion.nombre_centro}<br>(${inscripcion.loc_centro})</td><td onclick="muestraEditor(0);" class="editable"><a name="filaEd0"><table><tbody>
+                    <td>${inscripcion.cod_centro}<br> ${inscripcion.nombre_centro}<br>(${inscripcion.loc_centro})</td><td onclick="muestraEditor(${id});" class="editable"><a name="filaEd${id}"><table><tbody>
                     <tr><td>${inscripcion.Ap11} ${inscripcion.Ap12}, ${inscripcion.Nombre1} ( ${inscripcion.Edad1 || ''})</td></tr>
                     <tr><td>${inscripcion.Ap21} ${inscripcion.Ap22}, ${inscripcion.Nombre2} ( ${inscripcion.Edad2 || ''})</td></tr>
                     <tr><td>${inscripcion.Ap31} ${inscripcion.Ap32}, ${inscripcion.Nombre3} ( ${inscripcion.Edad3 || ''})</td></tr>
@@ -165,6 +159,17 @@
             let mesFin = document.getElementById('mesFin').value;
             let fechaIn = Atimestamp(diaIn, mesIn);
             let fechaFin = Atimestamp(diaFin, mesFin);
+
+
+            //para gestionar la autenticacion:
+            let key_yincanas = [];
+            clavesPrivadas.forEach(yi => {
+                key_yincanas.push(calcMD5(yi))
+            })
+            //alert(key_yincanas);
+            let key_admin = calcMD5(document.getElementById('CAdmin').value);
+            //alert(key_admin);
+
             //alert(getAbsolutePath());
             const miFetch = await fetch(getAbsolutePath() + '/get', {
                 headers: {
@@ -172,47 +177,30 @@
                 },
                 method: 'POST',
                 //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
-                body: JSON.stringify({ yincana, estado, fechaIn, fechaFin })
+                body: JSON.stringify({ key_yincanas, key_admin, yincana, estado, fechaIn, fechaFin })
             });
             // Transforma la respuesta. En este caso lo convierte a JSON
             const json = await miFetch.json();
             //alert(json.length);
-            let seModificaIns = false;
-            aPresentar = [];
-            json.forEach(element => {//alert('sii');
-                //aPresentar.push(element.id);
-                let inscripcion = inscripciones.find(ins => ins.id === element.id);
-                //alert('llll: '+JSON.stringify( inscripcion));
-                let claveAES;
-                let resultado;
-                let seAnnade = false;
-                let nuevoElemento = {};//alert(inscripcion)
-                if (!inscripcion) {//alert('hhhh');
-                    seModificaIns = true;
-                    claveAES = desencriptakk(element.encr, clavesPrivadas[+element.yincanaId - 1]);
-                    resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, claveAES, 256));
-                    ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
-                        nuevoElemento[item] = element[item];
-                    });
-                    nuevoElemento['claveAES'] = claveAES;
-                    ['texto_centro', 'tipo', 'nombre_centro', 'loc_centro', 'cod_centro',
-                        'Ap11', 'Ap12', 'Nombre1', 'Edad1',
-                        'Ap21', 'Ap22', 'Nombre2', 'Edad2',
-                        'Ap31', 'Ap32', 'Nombre3', 'Edad3',
-                        'Ap41', 'Ap42', 'Nombre4', 'Edad4',
-                        'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP'].forEach(item => {
-                            nuevoElemento[item] = resultado[item];
-                        })
-                    seAnnade = true;//se ha creado uno nuevo.
-                } else if (inscripcion.updatedAt < element.updatedAt) {
-                    seModificaIns = true;
-                    nuevoElemento = inscripcion;
-                    ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
-                        nuevoElemento[item] = element[item];
-                    });
-                    //alert('se modifica el valor antiguo');
-                    if (inscripcion.valor !== element.valor) {
-                        resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, inscripcion.claveAES, 256));
+            if (json.autorizado) {
+                let seModificaIns = false;
+                aPresentar = [];
+                json.inscripciones.forEach(element => {//alert('sii');
+                    //aPresentar.push(element.id);
+                    let inscripcion = inscripciones.find(ins => ins.id === element.id);
+                    //alert('llll: '+JSON.stringify( inscripcion));
+                    let claveAES;
+                    let resultado;
+                    let seAnnade = false;
+                    let nuevoElemento = {};//alert(inscripcion)
+                    if (!inscripcion) {//alert('hhhh');
+                        seModificaIns = true;
+                        claveAES = desencriptakk(element.encr, clavesPrivadas[+element.yincanaId - 1]);
+                        resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, claveAES, 256));
+                        ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
+                            nuevoElemento[item] = element[item];
+                        });
+                        nuevoElemento['claveAES'] = claveAES;
                         ['texto_centro', 'tipo', 'nombre_centro', 'loc_centro', 'cod_centro',
                             'Ap11', 'Ap12', 'Nombre1', 'Edad1',
                             'Ap21', 'Ap22', 'Nombre2', 'Edad2',
@@ -220,26 +208,49 @@
                             'Ap41', 'Ap42', 'Nombre4', 'Edad4',
                             'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP'].forEach(item => {
                                 nuevoElemento[item] = resultado[item];
-                            });
+                            })
+                        seAnnade = true;//se ha creado uno nuevo.
+                    } else if (inscripcion.updatedAt < element.updatedAt) {
+                        seModificaIns = true;
+                        nuevoElemento = inscripcion;
+                        ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
+                            nuevoElemento[item] = element[item];
+                        });
+                        //alert('se modifica el valor antiguo');
+                        if (inscripcion.valor !== element.valor) {
+                            resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, inscripcion.claveAES, 256));
+                            ['texto_centro', 'tipo', 'nombre_centro', 'loc_centro', 'cod_centro',
+                                'Ap11', 'Ap12', 'Nombre1', 'Edad1',
+                                'Ap21', 'Ap22', 'Nombre2', 'Edad2',
+                                'Ap31', 'Ap32', 'Nombre3', 'Edad3',
+                                'Ap41', 'Ap42', 'Nombre4', 'Edad4',
+                                'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP'].forEach(item => {
+                                    nuevoElemento[item] = resultado[item];
+                                });
+                        }
+
+
                     }
+                    //claveAES=desencriptakk(element.encr, clavesPrivadas[+element.yincanaId-1]);
+                    //resultado=JSON.parse(Aes.Ctr.decrypt(element.valor,claveAES,256));
 
+                    //alert(JSON.stringify(resultado));
+                    if (seAnnade) {
+                        inscripciones.push(nuevoElemento);
+                        aPresentar.push(nuevoElemento);
+                    } else aPresentar.push(inscripcion);
+                });
+                if (seModificaIns) localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
+                //alert(JSON.stringify(inscripciones))
+                //alert(JSON.stringify(json));
+                //alert(aPresentar);
+                document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
+                //alert(yincana+' +++ '+estado+' +++ '+diaIn+' +++ '+mesIn+' jj '+diaFin+' +++ '+mesFin+' fechas '+fechaIn+' +++ '+fechaFin);
+            } else {
+                alert('Clave de administrador incorrecta o gymkana no disponible');
+                document.getElementById('decrip').innerHTML = 'Debe volver a poner las credenciales y recargar'
 
-                }
-                //claveAES=desencriptakk(element.encr, clavesPrivadas[+element.yincanaId-1]);
-                //resultado=JSON.parse(Aes.Ctr.decrypt(element.valor,claveAES,256));
-
-                //alert(JSON.stringify(resultado));
-                if (seAnnade) {
-                    inscripciones.push(nuevoElemento);
-                    aPresentar.push(nuevoElemento);
-                } else aPresentar.push(inscripcion);
-            });
-            if (seModificaIns) localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
-            //alert(JSON.stringify(inscripciones))
-            //alert(JSON.stringify(json));
-            //alert(aPresentar);
-            document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
-            //alert(yincana+' +++ '+estado+' +++ '+diaIn+' +++ '+mesIn+' jj '+diaFin+' +++ '+mesFin+' fechas '+fechaIn+' +++ '+fechaFin);
+            }
         }
 
         const Atimestamp = (dia, mes) => {
@@ -248,6 +259,122 @@
             } else {
                 let anno = new Date().getFullYear();
                 return new Date(anno, mes, dia).getTime();
+            }
+        }
+
+        const quitaSesionAdmin = async () => {
+            const miFetch = await fetch(getAbsolutePath() + '/quitaSesionUser', {
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                method: 'POST',
+                //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
+                body: JSON.stringify({ users: ['admin'] })
+            });
+            // Transforma la respuesta. En este caso lo convierte a JSON
+            const json = await miFetch.json();
+            alert(JSON.stringify(json));
+        }
+
+        const muestraEditor= (id)=>{ 
+            let inscripcion=inscripciones.find(ins => ins.id === id);
+            
+
+            html=`<div align="center"><img src="${inscripcion.yincanaId}/cabecera.svg" ></div>
+            <hr/>
+TIPO DE EQUIPO<br/> 
+  <input type="radio" name="tipo" id="primaria" value="primaria" onchange="cambioTipo();" ${'primaria'===inscripcion.tipo?'checked':''}> Equipo de Ed. <b>Primaria</b> de Centro (4 alumnos de Ed. Primaria del mismo Centro Educativo)<br>
+  <input type="radio" name="tipo" id="secundaria" value="secundaria" onchange="cambioTipo();" ${'secundaria'===inscripcion.tipo?'checked':''}> Equipo de Ed. <b>Secundaria</b> de Centro (4 alumnos de Ed. Secundaria del mismo Centro Educativo )<br/>
+  <input type="radio" name="tipo" id="adultos" value="adultos" onchange="cambioTipo();" ${'adultos'===inscripcion.tipo?'checked':''}> Equipo de Ed. para <b>Adultos</b> de Centro (4 alumnos de Ed. para Adultos del mismo Centro Educativo )<br/>
+Nombre del Centro: <input name="nombre_centro" id="nombre_centro" onchange="seActualiza(this);" maxlength="50" size="50" value="${inscripcion.nombre_centro}" >CÓDIGO: <input name="cod_centro" id="cod_centro" maxlength="8" size="8" onchange="seActualiza(this);" value="${inscripcion.cod_centro}"><a href="http://gestiona.madrid.org/wpad_pub/run/j/MostrarConsultaGeneral.icm?tipoCurso=ADM&sinboton=S" target="_BLANK" title="Buscador de Centros Comunidad de Madrdid"><img src="../img/find.png" align="middle"></a>  
+Localidad: <input name="loc_centro" id="loc_centro" onchange="seActualiza(this); " maxlength="30" size="30" value="${inscripcion.loc_centro}"><hr/>
+DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
+ <table style="width:100%">
+  <tr>
+    <th><br/></th>
+    <th>Apellido1</th>
+    <th>Apellido2</th>
+    <th>Nombre</th>
+    <th>Edad</th>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td><input name="Ap11" id="Ap11" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap11}"></td>
+    <td><input name="Ap12" id="Ap12" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap12||''}"></td>
+    <td><input name="Nombre1" id="Nombre1" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre1}"></td>
+    <td><input name="Edad1" id="Edad1" maxlength="2" size="2" onchange="seActualiza(this);" value="${inscripcion.Edad1||''}"></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td><input name="Ap21" id="Ap21" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap21}"></td>
+    <td><input name="Ap22" id="Ap22" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap22||''}"></td>
+    <td><input name="Nombre2" id="Nombre2" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre2}"></td>
+    <td><input name="Edad2" id="Edad2" maxlength="2" size="2" onchange="seActualiza(this);" value="${inscripcion.Edad2||''}"></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td><input name="Ap31" id="Ap31" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap31}"></td>
+    <td><input name="Ap32" id="Ap32" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap32||''}"></td>
+    <td><input name="Nombre3" id="Nombre3" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre3}"></td>
+    <td><input name="Edad3" id="Edad3" maxlength="2" size="2" onchange="seActualiza(this);" value="${inscripcion.Edad3||''}"></td>
+   </tr>
+  <tr>
+    <td>4</td>
+    <td><input name="Ap41" id="Ap41" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap41}"></td>
+    <td><input name="Ap42" id="Ap42" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap42||''}"></td>
+    <td><input name="Nombre4" id="Nombre4" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre4}"></td>
+    <td><input name="Edad4" id="Edad4" maxlength="2" size="2" onchange="seActualiza(this);" value="${inscripcion.Edad4||''}"></td>
+  </tr>
+</table>
+<p>PERSONA DE CONTACTO: <p/>
+<p>Primer apellido: <input name="ApP1" id="ApP1" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.ApP1}">
+Segundo apellido: <input name="ApP2" id="ApP2" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.ApP2||''}">
+Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.NomP}"></p>  
+<p>Telefonos de contacto: <input name="TelP1" id="TelP1" maxlength="9" size="9" onchange="seActualiza(this);" value="${inscripcion.TelP1}"> / <input name="TelP2" id="TelP2" maxlength="9"  size="9" onchange="seActualiza(this);"  value="${inscripcion.Telp2||''}"> Correo e.: <input name="EmailP" id="EmailP" onchange="seActualizaCorreo(this);" maxlength="50"  size="50"  value="${inscripcion.EmailP}"></p><hr/>
+<br><br>
+<input name="ACTUALIZAR DATOS DE LA FICHA" value="ACTUALIZAR DATOS DE LA FICHA" type="button" onclick="LanzaLaActualizcion()">
+<input name="CANCELAR" value="CANCELAR" type="button" onclick="ocultaEditor()">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="CreaCopiaSolicitud" value="CreaCopiaSolicitud" type="button" onclick="CreaCopiaSol();">
+<hr><p><br>&nbsp;&nbsp;&nbsp;++Mueve la solicitud a la Gymkana de
+<select onchange="DesplazaA(this.value);" >
+    <option id ="blanco" value="#" selected></option>
+    <% for (let i=0;i<yincanas.length;i++){ %>
+        <option id ="<%= yincanas[i].utilidad %>" value="<%= yincanas[i].id %>" ><%= yincanas[i].utilidad %></option>
+    <% } %> 
+</select> 
+&nbsp;Con nº de Equipo:<input type="text" name="NEQUIPOED" id="NEQUIPOED" maxlength="3" size="3" onchange="PonNEquipo(this);" value="0">
+<input name="DESPLAZA" value="DESPLAZA" type="button" onclick="mueveEquipo();">
+</p><br>`;
+        
+        document.getElementById('decrip').style.visibility='hidden';
+        document.getElementById('decrip').style.display = "none"
+        //document.getElementById('decrip').style.visibility.zIndex='3';
+        document.getElementById('alumno').innerHTML=html;
+        document.getElementById('alumno').style.visibility='visible';
+        document.getElementById('alumno').style.display = "block";
+
+        }
+
+        const ocultaEditor=()=>{
+            document.getElementById('decrip').style.visibility='visible';
+            document.getElementById('decrip').style.display = "block";
+            //document.getElementById('decrip').style.visibility.zIndex='5';
+            document.getElementById('alumno').style.display = "none";
+            document.getElementById('alumno').style.visibility='hidden';
+        }       
+        
+        const LanzaLaActualizcion=()=>{
+            if(validaCampos()){ 
+                alert('validados');
+                //lee(); valida campo y los lee()
+                alert(tipo);
+                let datos={texto_centro, tipo, nombre_centro,loc_centro, cod_centro,
+		            Ap11, Ap12, Nombre1, Edad1,
+                    Ap21, Ap22, Nombre2, Edad2,
+                    Ap31, Ap32, Nombre3, Edad3,
+                    Ap41, Ap42, Nombre4, Edad4,
+                ApP1, ApP2, NomP, TelP1, TelP2, EmailP}
+                alert(JSON.stringify(datos));
             }
         }
     </script>
@@ -308,6 +435,7 @@
         BORRA LO GUARDADO: <input type="button" value="borra"
             onclick="localStorage.removeItem('inscripciones');alert(localStorage.getItem('inscripciones'))">
         <br>
+        QUITA LA SESION: <input type="button" value="borra la sesion" onclick="quitaSesionAdmin()">
         ORDENADO POR F. REC. <input type="checkbox" value="1"
             onchange="document.getElementById('ORDRECV').value=this.checked">
     </div>
@@ -349,7 +477,8 @@
     </form><br>
     <iframe name="frameditar" id="frameditar" src="./edAlumnos.php" width="100%" height="0px"
         style="visibility: hidden;"></iframe>
-    <div id="decrip"></div>
+    <div id="decrip" style="visibility: visible; z-index: 4"></div>
+    <div id="alumno" style="visibility: visible; z-index: 4"></div>
 
 
 
