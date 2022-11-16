@@ -23,6 +23,11 @@
     <script type="text/javascript" src="../mijs/validar.js"></script>
     <script type="text/javascript" src="../mijs/encriptador.js"></script>
     <script type="text/javascript" src="../js/jspdf.debug.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.qrcode.min.js"></script>
+
+
     <script type="text/javascript">
         let inscripciones = JSON.parse(localStorage.getItem('inscripciones')) || [];
         let aPresentar = [];
@@ -134,7 +139,7 @@
                 };//alert(id+accion);
                 let cuerpoAdd = `<td class="${accion}"><select onchange="registraOperacion(this.value);"><option value="ESTADO,${id}, -1" selected="selected"></option><option value="ESTADO,${id}, 0">GENERADA</option><option value="ESTADO,${id},1">RECIBIDA</option><option value="ESTADO,${id},2">ADMITIDA</option><option value="ESTADO,${id}, 3">L. ESPERA</option><option value="ESTADO,${id}, 4">ANULADA</option></select></td><td>${id}</td><td><input type="text" name="pin${id}" id="pin${id}" maxlength="3" size="3" onchange=";registraOperacion('NEQUIPO,${id}, '+this.value+'')" value="${inscripcion.nequipo || ''}"></td><td>${inscripcion.nsol}</td>
             <td>${inscripcion.clave.substring(0, 8)}<br>${inscripcion.clave.substring(8, 16)}<br>${inscripcion.clave.substring(16, 24)}<br>${inscripcion.clave.substring(24)}</td><td class="${inscripcion.tipo}">${inscripcion.tipo.substring(0, 1).toUpperCase()}</td>
-                    <td>${inscripcion.cod_centro}<br> ${inscripcion.nombre_centro}<br>(${inscripcion.loc_centro})</td><td onclick="muestraEditor(${id});" class="editable"><a name="filaEd${id}"><table><tbody>
+                    <td>${inscripcion.cod_centro}<br> ${inscripcion.tipoC + ' ' + inscripcion.nombre_centro}<br>(${inscripcion.loc_centro})</td><td onclick="muestraEditor(${id});" class="editable"><a name="filaEd${id}"><table><tbody>
                     <tr><td>${inscripcion.Ap11} ${inscripcion.Ap12}, ${inscripcion.Nombre1} ( ${inscripcion.Edad1 || ''})</td></tr>
                     <tr><td>${inscripcion.Ap21} ${inscripcion.Ap22}, ${inscripcion.Nombre2} ( ${inscripcion.Edad2 || ''})</td></tr>
                     <tr><td>${inscripcion.Ap31} ${inscripcion.Ap32}, ${inscripcion.Nombre3} ( ${inscripcion.Edad3 || ''})</td></tr>
@@ -201,7 +206,7 @@
                             nuevoElemento[item] = element[item];
                         });
                         nuevoElemento['claveAES'] = claveAES;
-                        ['texto_centro', 'tipo', 'nombre_centro', 'loc_centro', 'cod_centro',
+                        [/*'texto_centro',*/ 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
                             'Ap11', 'Ap12', 'Nombre1', 'Edad1',
                             'Ap21', 'Ap22', 'Nombre2', 'Edad2',
                             'Ap31', 'Ap32', 'Nombre3', 'Edad3',
@@ -219,7 +224,7 @@
                         //alert('se modifica el valor antiguo');
                         if (inscripcion.valor !== element.valor) {
                             resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, inscripcion.claveAES, 256));
-                            ['texto_centro', 'tipo', 'nombre_centro', 'loc_centro', 'cod_centro',
+                            [/*'texto_centro'*/, 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
                                 'Ap11', 'Ap12', 'Nombre1', 'Edad1',
                                 'Ap21', 'Ap22', 'Nombre2', 'Edad2',
                                 'Ap31', 'Ap32', 'Nombre3', 'Edad3',
@@ -275,18 +280,22 @@
             const json = await miFetch.json();
             alert(JSON.stringify(json));
         }
-
-        const muestraEditor= (id)=>{ 
-            let inscripcion=inscripciones.find(ins => ins.id === id);
-            
-
-            html=`<div align="center"><img src="${inscripcion.yincanaId}/cabecera.svg" ></div>
+        let inscripcionEditada;
+        let NUM_SOL=0;
+        let CLAVE=''
+        DatosSolicitud=[];
+        const muestraEditor = (id) => {
+            let inscripcion = inscripciones.find(ins => ins.id === id);
+            inscripcionEditada = inscripcion;
+            NUM_SOL=inscripcion.nsol;
+            CLAVE=inscripcion.clave;
+            html = `<div align="center"><img src="${inscripcion.yincanaId}/cabecera.svg" ></div>
             <hr/>
 TIPO DE EQUIPO<br/> 
-  <input type="radio" name="tipo" id="primaria" value="primaria" onchange="cambioTipo();" ${'primaria'===inscripcion.tipo?'checked':''}> Equipo de Ed. <b>Primaria</b> de Centro (4 alumnos de Ed. Primaria del mismo Centro Educativo)<br>
-  <input type="radio" name="tipo" id="secundaria" value="secundaria" onchange="cambioTipo();" ${'secundaria'===inscripcion.tipo?'checked':''}> Equipo de Ed. <b>Secundaria</b> de Centro (4 alumnos de Ed. Secundaria del mismo Centro Educativo )<br/>
-  <input type="radio" name="tipo" id="adultos" value="adultos" onchange="cambioTipo();" ${'adultos'===inscripcion.tipo?'checked':''}> Equipo de Ed. para <b>Adultos</b> de Centro (4 alumnos de Ed. para Adultos del mismo Centro Educativo )<br/>
-Nombre del Centro: <input name="nombre_centro" id="nombre_centro" onchange="seActualiza(this);" maxlength="50" size="50" value="${inscripcion.nombre_centro}" >CÓDIGO: <input name="cod_centro" id="cod_centro" maxlength="8" size="8" onchange="seActualiza(this);" value="${inscripcion.cod_centro}"><a href="http://gestiona.madrid.org/wpad_pub/run/j/MostrarConsultaGeneral.icm?tipoCurso=ADM&sinboton=S" target="_BLANK" title="Buscador de Centros Comunidad de Madrdid"><img src="../img/find.png" align="middle"></a>  
+  <input type="radio" name="tipo" id="primaria" value="primaria" onchange="cambioTipo();" ${'primaria' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. <b>Primaria</b> de Centro (4 alumnos de Ed. Primaria del mismo Centro Educativo)<br>
+  <input type="radio" name="tipo" id="secundaria" value="secundaria" onchange="cambioTipo();" ${'secundaria' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. <b>Secundaria</b> de Centro (4 alumnos de Ed. Secundaria del mismo Centro Educativo )<br/>
+  <input type="radio" name="tipo" id="adultos" value="adultos" onchange="cambioTipo();" ${'adultos' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. para <b>Adultos</b> de Centro (4 alumnos de Ed. para Adultos del mismo Centro Educativo )<br/>
+Tipo:<input name="tipoC" id="tipoC" onchange="seActualiza(this);" maxlength="10" size="10" value="${inscripcion.tipoC}" > Nombre del Centro: <input name="nombre_centro" id="nombre_centro" onchange="seActualiza(this);" maxlength="50" size="50" value="${inscripcion.nombre_centro}" >CÓDIGO: <input name="cod_centro" id="cod_centro" maxlength="8" size="8" onchange="seActualiza(this);" value="${inscripcion.cod_centro}"><a href="http://gestiona.madrid.org/wpad_pub/run/j/MostrarConsultaGeneral.icm?tipoCurso=ADM&sinboton=S" target="_BLANK" title="Buscador de Centros Comunidad de Madrdid"><img src="../img/find.png" align="middle"></a>  
 Localidad: <input name="loc_centro" id="loc_centro" onchange="seActualiza(this); " maxlength="30" size="30" value="${inscripcion.loc_centro}"><hr/>
 DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
  <table style="width:100%">
@@ -300,39 +309,39 @@ DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
   <tr>
     <td>1</td>
     <td><input name="Ap11" id="Ap11" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap11}"></td>
-    <td><input name="Ap12" id="Ap12" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap12||''}"></td>
+    <td><input name="Ap12" id="Ap12" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap12 || ''}"></td>
     <td><input name="Nombre1" id="Nombre1" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre1}"></td>
-    <td><input name="Edad1" id="Edad1" maxlength="2" size="2" onchange="seActualiza(this);" value="${inscripcion.Edad1||''}"></td>
+    <td><input name="Edad1" id="Edad1" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad1 || ''}"></td>
   </tr>
   <tr>
     <td>2</td>
     <td><input name="Ap21" id="Ap21" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap21}"></td>
-    <td><input name="Ap22" id="Ap22" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap22||''}"></td>
+    <td><input name="Ap22" id="Ap22" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap22 || ''}"></td>
     <td><input name="Nombre2" id="Nombre2" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre2}"></td>
-    <td><input name="Edad2" id="Edad2" maxlength="2" size="2" onchange="seActualiza(this);" value="${inscripcion.Edad2||''}"></td>
+    <td><input name="Edad2" id="Edad2" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad2 || ''}"></td>
   </tr>
   <tr>
     <td>3</td>
     <td><input name="Ap31" id="Ap31" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap31}"></td>
-    <td><input name="Ap32" id="Ap32" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap32||''}"></td>
+    <td><input name="Ap32" id="Ap32" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap32 || ''}"></td>
     <td><input name="Nombre3" id="Nombre3" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre3}"></td>
-    <td><input name="Edad3" id="Edad3" maxlength="2" size="2" onchange="seActualiza(this);" value="${inscripcion.Edad3||''}"></td>
+    <td><input name="Edad3" id="Edad3" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad3 || ''}"></td>
    </tr>
   <tr>
     <td>4</td>
     <td><input name="Ap41" id="Ap41" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap41}"></td>
-    <td><input name="Ap42" id="Ap42" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap42||''}"></td>
+    <td><input name="Ap42" id="Ap42" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap42 || ''}"></td>
     <td><input name="Nombre4" id="Nombre4" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre4}"></td>
-    <td><input name="Edad4" id="Edad4" maxlength="2" size="2" onchange="seActualiza(this);" value="${inscripcion.Edad4||''}"></td>
+    <td><input name="Edad4" id="Edad4" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad4 || ''}"></td>
   </tr>
 </table>
 <p>PERSONA DE CONTACTO: <p/>
 <p>Primer apellido: <input name="ApP1" id="ApP1" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.ApP1}">
-Segundo apellido: <input name="ApP2" id="ApP2" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.ApP2||''}">
+Segundo apellido: <input name="ApP2" id="ApP2" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.ApP2 || ''}">
 Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.NomP}"></p>  
-<p>Telefonos de contacto: <input name="TelP1" id="TelP1" maxlength="9" size="9" onchange="seActualiza(this);" value="${inscripcion.TelP1}"> / <input name="TelP2" id="TelP2" maxlength="9"  size="9" onchange="seActualiza(this);"  value="${inscripcion.Telp2||''}"> Correo e.: <input name="EmailP" id="EmailP" onchange="seActualizaCorreo(this);" maxlength="50"  size="50"  value="${inscripcion.EmailP}"></p><hr/>
+<p>Telefonos de contacto: <input name="TelP1" id="TelP1" maxlength="9" size="9" onchange="seActualiza(this);" value="${inscripcion.TelP1}"> / <input name="TelP2" id="TelP2" maxlength="9"  size="9" onchange="seActualiza(this);"  value="${inscripcion.Telp2 || ''}"> Correo e.: <input name="EmailP" id="EmailP" onchange="seActualizaCorreo(this);" maxlength="50"  size="50"  value="${inscripcion.EmailP}"></p><hr/>
 <br><br>
-<input name="ACTUALIZAR DATOS DE LA FICHA" value="ACTUALIZAR DATOS DE LA FICHA" type="button" onclick="LanzaLaActualizcion()">
+<input name="ACTUALIZAR DATOS DE LA FICHA" value="ACTUALIZAR DATOS DE LA FICHA" type="button" onclick="LanzaLaActualizacion()">
 <input name="CANCELAR" value="CANCELAR" type="button" onclick="ocultaEditor()">
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="CreaCopiaSolicitud" value="CreaCopiaSolicitud" type="button" onclick="CreaCopiaSol();">
 <hr><p><br>&nbsp;&nbsp;&nbsp;++Mueve la solicitud a la Gymkana de
@@ -345,38 +354,94 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
 &nbsp;Con nº de Equipo:<input type="text" name="NEQUIPOED" id="NEQUIPOED" maxlength="3" size="3" onchange="PonNEquipo(this);" value="0">
 <input name="DESPLAZA" value="DESPLAZA" type="button" onclick="mueveEquipo();">
 </p><br>`;
-        
-        document.getElementById('decrip').style.visibility='hidden';
-        document.getElementById('decrip').style.display = "none"
-        //document.getElementById('decrip').style.visibility.zIndex='3';
-        document.getElementById('alumno').innerHTML=html;
-        document.getElementById('alumno').style.visibility='visible';
-        document.getElementById('alumno').style.display = "block";
+
+            document.getElementById('decrip').style.visibility = 'hidden';
+            document.getElementById('decrip').style.display = "none"
+            //document.getElementById('decrip').style.visibility.zIndex='3';
+            document.getElementById('alumno').innerHTML = html;
+            document.getElementById('alumno').style.visibility = 'visible';
+            document.getElementById('alumno').style.display = "block";
 
         }
 
-        const ocultaEditor=()=>{
-            document.getElementById('decrip').style.visibility='visible';
+        const ocultaEditor = () => {
+            document.getElementById('decrip').style.visibility = 'visible';
             document.getElementById('decrip').style.display = "block";
             //document.getElementById('decrip').style.visibility.zIndex='5';
             document.getElementById('alumno').style.display = "none";
-            document.getElementById('alumno').style.visibility='hidden';
-        }       
-        
-        const LanzaLaActualizcion=()=>{
-            if(validaCampos()){ 
+            document.getElementById('alumno').style.visibility = 'hidden';
+        }
+
+        //se pone en mayusculas el contenido
+        const seActualiza = (campo) => {
+            campo.value = campo.value.toUpperCase();
+        };
+
+        const LanzaLaActualizacion = async () => {
+            if (validaCampos()) {
                 alert('validados');
                 //lee(); valida campo y los lee()
-                alert(tipo);
-                let datos={texto_centro, tipo, nombre_centro,loc_centro, cod_centro,
-		            Ap11, Ap12, Nombre1, Edad1,
-                    Ap21, Ap22, Nombre2, Edad2,
-                    Ap31, Ap32, Nombre3, Edad3,
-                    Ap41, Ap42, Nombre4, Edad4,
-                ApP1, ApP2, NomP, TelP1, TelP2, EmailP}
-                alert(JSON.stringify(datos));
+                let cambiada = false;
+                for (i in datosLeidos) {
+                    if (datosLeidos[i] !== inscripcionEditada[i]) {
+                        cambiada = true;
+                        inscripcionEditada[i] = datosLeidos[i];
+                    }
+                }
+
+                //alert(cambiada+'\n'+JSON.stringify(datosLeidos));
+                alert(cambiada + '\n' + JSON.stringify(inscripcionEditada));
+                if (cambiada) {
+                    document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
+                    let conCambios = { id: inscripcionEditada.id, valor: Aes.Ctr.encryptFijo(JSON.stringify(datosLeidos), inscripcionEditada.claveAES, 256) };
+                    alert(JSON.stringify(conCambios));
+                    const miFetch = await fetch(getAbsolutePath() + '/modifica', {
+                        headers: {
+                            'Content-type': 'application/json'
+                        },
+                        method: 'POST',
+                        //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
+                        body: JSON.stringify(conCambios)
+                    });
+                    // Transforma la respuesta. En este caso lo convierte a JSON
+                    const json = await miFetch.json();
+                    if (json.autorizado) {
+                        inscripcionEditada.valor=json.inscripcion.valor;//una vez grabado lo pasamos al del local storage
+                        document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
+                        alert('cambios realizados');
+                    } else alert('no se han hecho cambios');
+                }
             }
         }
+
+        const CreaCopiaSol=()=>{
+            let aux=getAbsolutePath().split('admin');
+            let urlComprobar=aux[0]+inscripcionEditada.yincanaId+`/comprueba?contador=${NUM_SOL}&clave=${CLAVE}`;
+            ponQR(urlComprobar);/*resultadoBD*/DatosSolicitud=tomaQR(urlComprobar,NUM_SOL,CLAVE);//NUM_SOL=DatosSolicitud[2];/*window.top.window.A(resultadoBD)*/;
+            DatosSolicitud=generaQR(urlComprobar,NUM_SOL,CLAVE);
+            alert('entramos: '+'../'+inscripcionEditada.yincanaId+'/LogoGymk18.jpg');
+            if(!datosLeidos.tipo)lee();
+            /*let inscripcioon=inscripciones.find(ins => ins.id === element.id)()
+            NUM_SOL=datosLeidos.nsolF*/
+            getImageFromUrl('../'+inscripcionEditada.yincanaId+'/LogoGymk18.jpg', generaPDF);       
+            //generaPDF('../'+inscripcionEditada.yincanaId+'/LogoGymk18.jpg');
+        }
+
+        
+        ///++++++++++++++++++se copian de hoja, tal vez se debe unificar
+        /*function ponQR(url){
+            jQuery('#qr').html('');
+            //jQuery('#qr').qrcode('<?php echo $URL."?contador=".$nVisita."&clave=".$CLAVE;?>');
+        jQuery('#qr').qrcode(url);
+        }*/
+        //ponQR();
+
+        /*function tomaQR(url,cont,clave){
+            var c=$('#qr').children('canvas');
+            c=document.getElementById('qr').firstChild.toDataURL();
+            //return [c,'<?php echo $URL."?contador=".$nVisita."&clave=".$CLAVE; ?>',<?php echo $nVisita.", ".$CLAVE; ?> ]; 
+        return [c,url,cont, clave  ]; 
+        }*/
     </script>
 </head>
 
@@ -479,7 +544,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
         style="visibility: hidden;"></iframe>
     <div id="decrip" style="visibility: visible; z-index: 4"></div>
     <div id="alumno" style="visibility: visible; z-index: 4"></div>
-
+    <span id="qr"></span>
 
 
 

@@ -26,6 +26,9 @@ router.post('/admin/update', inscripcionController.ponSesionUser, inscripcionCon
 
 router.post('/admin/quitaSesionUser', inscripcionController.quitaSesionUser);
 
+router.post('/admin/modifica', inscripcionController.ponSesionUser, inscripcionController.adminModifica);
+
+
 //router.get('/quizzes/new',                 quizController.new);
 //router.post('/quizzes',                    quizController.create);
 

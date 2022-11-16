@@ -21,6 +21,8 @@ function EsTelefonoFijo(tel) {
 }
 //validar edad
 function EsEdadValida(ed){
+	if(ed==='')return true;//si estan vacías se admite
+	else if (+ed<10)ed='0'+ed;
 	var test = /^[\s|0|1][0-9]$/;//menos de 19 años
 	var telReg = new RegExp(test);
 	return telReg.test(ed); 

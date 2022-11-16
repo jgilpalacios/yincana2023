@@ -239,6 +239,21 @@ exports.adminUpdate = async (req, res, next) => {
    // }
 };
 
+exports.adminModifica = async (req, res, next) => {
+    let {id, valor} =req.body;
+    const t = await sequelize.transaction();
+    try{
+        let inscripcion = await models.Inscripcion.findByPk(id);
+        inscripcion.valor=valor;
+        await inscripcion.save();
+        t.commit();
+        res.send(JSON.stringify({inscripcion, autorizado: true}));
+    } catch (error) {
+        t.rollback();
+        console.log(error);
+    }
+}
+
 exports.ponSesionUser = async (req, res, next) => {
     const { key_yincanas, key_admin, yincana } = req.body;
     //let autorizado = false;//para ver si tiene autorizacion
