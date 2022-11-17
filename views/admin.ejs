@@ -30,10 +30,18 @@
 
 
     <script type="text/javascript">
+
         let clavesPublicas=[<% for (let i=0;i<yincanas.length;i++) { %>
             `<%= yincanas[i].clavePublica %>`<% if (i<yincanas.length-1){ %>,<% } %>
             <% } %>
-        ]
+        ];
+
+        let yincanas=[<% for (let i=0;i<yincanas.length;i++) { %>
+            { id:<%= yincanas[i].id %>, utilidad:`<%= yincanas[i].utilidad %>` }<% if (i<yincanas.length-1){ %>,<% } %>
+            <% } %>
+        ];
+
+
         let inscripciones = JSON.parse(localStorage.getItem('inscripciones')) || [];
         let aPresentar = [];
         //alert(localStorage.getItem('inscripciones'));
@@ -42,12 +50,14 @@
             var pathName = loc.pathname;//.substring(0, loc.pathname.lastIndexOf('/') + 1);
             return loc.href.substring(0, loc.href.length - ((loc.pathname + loc.search + loc.hash).length - pathName.length));
         }
+
         function normalizaFecha(date) {
             if (date) {
                 let dd = new Date(date);
                 return dd.getDay() + '/' + (dd.getMonth() + 1) + '/' + dd.getFullYear() + ' ' + dd.getHours() + ':' + dd.getMinutes();
             } else return '';
         }
+
         const cargaOperaciones = async () => {
             alert('se lanza')
             if (operacionesPendientes) {
@@ -116,6 +126,7 @@
                 document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
             }
         }
+
         let totalOperaciones = {};
         let operacionesPendientes = false;
         const registraOperacion = (op) => {
@@ -127,6 +138,7 @@
             operacionesPendientes = true;
             //alert(op+'registrado'+objeto+';'+JSON.stringify(totalOperaciones));
         }
+
         const CreaTablaInscripciones = (seleccion) => {
             let cabecera = `<tr><th>ACCIÓN</th><th>ID</th><th class="ordenable" onclick="OrdLocal('NEQUIPO')">NºEQUIPO</th><th class="ordenable" onclick="OrdLocal('NSOL')">NSOL</th><th>CLAVE</th><th class="ordenable" onclick="OrdLocal('TIPO')">TIPO</th><th class="ordenable" onclick="OrdLocal('CODCENTRO')">CENTRO</th><th>ALUMNOS</th><th class="ordenable" onclick="OrdLocal('RESPONSABLE')">RESPONSABLE</th><th class="ordenable" onclick="OrdLocal('SOLICITADA')">SOLICITADA</th><th class="ordenable" onclick="OrdLocal('RECIBIDA')">RECIBIDA</th><th class="ordenable" onclick="OrdLocal('ESTADO')">ESTADO</th></tr>`;
             let cuerpo = '';
@@ -500,6 +512,123 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                 }
             }
         }
+
+        /////////para generar el CSV
+        function arrayObjToCsv(ar, campos) {
+		//comprobamos compatibilidad
+		if(window.Blob && (window.URL || window.webkitURL)){
+			var contenido = "",
+				d = new Date(),
+				blob,
+				reader,
+				save,
+				clicEvent;
+			//creamos contenido del archivo
+            ['id','nequipo','nsol',	'clave','tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro', 'Ap11', 'Ap12', 'Nombre1', 'Edad1', 'Ap21', 'Ap22', 'Nombre2', 'Edad2', 'Ap31', 'Ap32', 'Nombre3', 'Edad3', 'Ap41', 'Ap42', 'Nombre4', 'Edad4', 'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP','solicitada', 'recibida']
+            contenido=campos.join(';')+'\n';
+            ar.forEach(fila=>{
+                campos.forEach(campo=>{
+                    contenido+=fila[campo];
+                    if(campo!=='recibida')contenido+=';';
+                });
+                contenido+='\n';
+            });
+            //alert(contenido);
+			//creamos el blob
+			blob =  new Blob(["\ufeff", contenido], {type: 'text/csv'});
+			//creamos el reader
+			var reader = new FileReader();
+			reader.onload = function (event) {
+				//escuchamos su evento load y creamos un enlace en dom
+				save = document.createElement('a');
+				save.href = event.target.result;
+				save.target = '_blank';
+				//aquí le damos nombre al archivo
+				//save.download = "log_"+ d.getDate() + "_" + (d.getMonth()+1) + "_" + d.getFullYear() +".csv";
+				//document.getElementById('BDATOS').value
+				save.download = yincanas[+document.getElementById('localidad').value].utilidad+'-'+ d.getDate() + "_" + (d.getMonth()+1) + "_" + d.getFullYear() +".csv";
+				try {
+					//creamos un evento click
+					clicEvent = new MouseEvent('click', {
+						'view': window,
+						'bubbles': true,
+						'cancelable': true
+					});
+				} catch (e) {
+					//si llega aquí es que probablemente implemente la forma antigua de crear un enlace
+					clicEvent = document.createEvent("MouseEvent");
+					clicEvent.initEvent('click', true, true);
+				}
+				//disparamos el evento
+				save.dispatchEvent(clicEvent);
+				//liberamos el objeto window.URL
+				(window.URL || window.webkitURL).revokeObjectURL(save.href);
+			}
+			//leemos como url
+			reader.readAsDataURL(blob);
+		}else {
+			//el navegador no admite esta opción
+			alert("Su navegador no permite esta acción");
+		}
+	};
+
+    
+const BuscaDuplicados=()=>{
+	let Duplicados=[]
+    let ListaParticipantes=[];
+    aPresentar.forEach((inscripcion, i)=>{//hacemos una lista de nombres ids y posiciones
+        let lista={pos:i, id: inscripcion.id, participantes:[]};
+        lista.participantes.push(`${inscripcion.Ap11} ${inscripcion.Ap12}, ${inscripcion.Nombre1}`);
+        lista.participantes.push(`${inscripcion.Ap21} ${inscripcion.Ap22}, ${inscripcion.Nombre2}`);
+        lista.participantes.push(`${inscripcion.Ap31} ${inscripcion.Ap32}, ${inscripcion.Nombre3}`);
+        lista.participantes.push(`${inscripcion.Ap41} ${inscripcion.Ap42}, ${inscripcion.Nombre4}`);
+        ListaParticipantes.push(lista);
+    });
+    ListaParticipantes.forEach((fila,i)=>{
+        ListaParticipantes.forEach((col,j)=>{
+            if(j<i){
+                //no hacemos nada
+            }else if(i===j){//comparamos los de cada inscripcion
+                for (let k=0;k<fila.participantes.length;k++){
+                   for(let kk=k+1;kk<fila.participantes.length;kk++){
+                        if(fila.participantes[k]===col.participantes[kk])Duplicados.push({pos1:i+1, id1:fila.id, alumno1:'ALUMNO'+(k+1), pos2:j+1, id2:col.id, alumno2:'ALUMNO'+(kk+1), nombre: fila.participantes[k]})
+                   } 
+                }
+            }else{//comparamos los de una inscrcion con otras inscripciones
+                for (let k=0;k<fila.participantes.length;k++){
+                   for(let kk=0;kk<fila.participantes.length;kk++){
+                        if(fila.participantes[k]===col.participantes[kk])Duplicados.push({pos1:i+1, id1:fila.id, alumno1:'ALUMNO'+(k+1), pos2:j+1, id2:col.id, alumno2:'ALUMNO'+(kk+1), nombre: fila.participantes[k]})
+                   } 
+                }
+            }
+        });
+    });
+	
+	//alert(MuestraDuplicados());
+	if(Duplicados.length==0){
+		alert('No hay duplicados en la lista actual.');
+	}else{
+        let listar=confirm(MuestraDuplicados(Duplicados)+'\n¿Los quieres en un archivo CSV?');
+		if (listar){
+            let nombres=[];
+            for (i in Duplicados[0]){
+                nombres.push(i);
+            }
+            arrayObjToCsv(Duplicados,nombres);
+        }
+	}
+}
+const MuestraDuplicados=(Duplicados)=>{
+	var aux='';
+	for (var i=0;i<Duplicados.length; i++){
+		for(j in Duplicados[i]){
+			aux+=j+': '+Duplicados[i][j]+'; ';
+		}
+		aux+='\r\n';
+	}
+	return aux;
+}
+
     </script>
 </head>
 
@@ -567,7 +696,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
     <br />
     <!--<input id="acceder" type="button" value="acceder" onclick="haHabidoEdicion=false;ocultaEditor();document.getElementById('reiframe').style.visibility='visible';document.getElementById('decrip').innerHTML='';iniciaBarra();/*cucu=setInterval(gestBarra, 1000);*/LanzaConexion();cargaOperaciones();document.getElementById('genk').submit();" />-->
     <input id="acceder" type="button" value="acceder" onclick="LanzaCargaCambioEstado();" />
-    <input id="aCSV" type="button" value="aCSV" onclick="AjustaSalida();arrayObjToCsv(arraySalida);" />
+    <input id="aCSV" type="button" value="aCSV" onclick="/*AjustaSalida();*/arrayObjToCsv(aPresentar,['id','nequipo','nsol', 'clave','tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro', 'Ap11', 'Ap12', 'Nombre1', 'Edad1', 'Ap21', 'Ap22', 'Nombre2', 'Edad2', 'Ap31', 'Ap32', 'Nombre3', 'Edad3', 'Ap41', 'Ap42', 'Nombre4', 'Edad4', 'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP','solicitada', 'recibida']);" />
     <input id="CambiaEstadosSinRecargar" type="button" value="CambiaEstadosSinRecargar"
         onclick="/*LanzaCargaCambioEstadoSin();*/cargaOperaciones();" />
     <input id="BuscaDuplicados" type="button" value="BuscaDuplicados" onclick="BuscaDuplicados();" />
