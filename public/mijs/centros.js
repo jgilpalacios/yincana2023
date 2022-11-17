@@ -564,7 +564,7 @@ function Selecciona(tipo, nombre, localidad, codigo) {
   document.getElementById('cod_centro').value = codigo;
   document.getElementById('loc_centro').value = localidad.toUpperCase().trim();
   //clearInterval(temporizador);
-  desactivaTemp();
+  //desactivaTemp();
   //document.getElementById('nombre_centro').value=document.getElementById('tipoC').value+' '+document.getElementById('nombre_centro2').value;
   document.getElementById('centros').innerHTML = '';
 }

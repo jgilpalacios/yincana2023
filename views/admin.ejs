@@ -26,9 +26,14 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
     <script type="text/javascript" src="../js/jquery.qrcode.min.js"></script>
+    <script type="text/javascript" src="../mijs/centros.js"></script>
 
 
     <script type="text/javascript">
+        let clavesPublicas=[<% for (let i=0;i<yincanas.length;i++) { %>
+            `<%= yincanas[i].clavePublica %>`<% if (i<yincanas.length-1){ %>,<% } %>
+            <% } %>
+        ]
         let inscripciones = JSON.parse(localStorage.getItem('inscripciones')) || [];
         let aPresentar = [];
         //alert(localStorage.getItem('inscripciones'));
@@ -281,22 +286,27 @@
             alert(JSON.stringify(json));
         }
         let inscripcionEditada;
-        let NUM_SOL=0;
-        let CLAVE=''
-        DatosSolicitud=[];
+        let NUM_SOL = 0;
+        let CLAVE = ''
+        DatosSolicitud = [];
         const muestraEditor = (id) => {
             let inscripcion = inscripciones.find(ins => ins.id === id);
             inscripcionEditada = inscripcion;
-            NUM_SOL=inscripcion.nsol;
-            CLAVE=inscripcion.clave;
+            NUM_SOL = inscripcion.nsol;
+            CLAVE = inscripcion.clave;
             html = `<div align="center"><img src="${inscripcion.yincanaId}/cabecera.svg" ></div>
             <hr/>
 TIPO DE EQUIPO<br/> 
   <input type="radio" name="tipo" id="primaria" value="primaria" onchange="cambioTipo();" ${'primaria' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. <b>Primaria</b> de Centro (4 alumnos de Ed. Primaria del mismo Centro Educativo)<br>
   <input type="radio" name="tipo" id="secundaria" value="secundaria" onchange="cambioTipo();" ${'secundaria' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. <b>Secundaria</b> de Centro (4 alumnos de Ed. Secundaria del mismo Centro Educativo )<br/>
   <input type="radio" name="tipo" id="adultos" value="adultos" onchange="cambioTipo();" ${'adultos' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. para <b>Adultos</b> de Centro (4 alumnos de Ed. para Adultos del mismo Centro Educativo )<br/>
-Tipo:<input name="tipoC" id="tipoC" onchange="seActualiza(this);" maxlength="10" size="10" value="${inscripcion.tipoC}" > Nombre del Centro: <input name="nombre_centro" id="nombre_centro" onchange="seActualiza(this);" maxlength="50" size="50" value="${inscripcion.nombre_centro}" >CÓDIGO: <input name="cod_centro" id="cod_centro" maxlength="8" size="8" onchange="seActualiza(this);" value="${inscripcion.cod_centro}"><a href="http://gestiona.madrid.org/wpad_pub/run/j/MostrarConsultaGeneral.icm?tipoCurso=ADM&sinboton=S" target="_BLANK" title="Buscador de Centros Comunidad de Madrdid"><img src="../img/find.png" align="middle"></a>  
-Localidad: <input name="loc_centro" id="loc_centro" onchange="seActualiza(this); " maxlength="30" size="30" value="${inscripcion.loc_centro}"><hr/>
+Tipo:<!--<input name="tipoC" id="tipoC" onchange="seActualiza(this);" maxlength="10" size="10" value="${inscripcion.tipoC}" >-->
+<select name="tipoC" id="tipoC" value="${inscripcion.tipoC}" onchange="document.getElementById('cod_centro').value=''; Candidatos()">
+            </select>
+Nombre del Centro: <input name="nombre_centro" id="nombre_centro" onkeyup="document.getElementById('cod_centro').value='';this.value=this.value.toUpperCase();Candidatos()" maxlength="50" size="50" value="${inscripcion.nombre_centro}" >
+CÓDIGO: <input name="cod_centro" id="cod_centro" maxlength="8" size="8" onchange="Candidatos()" value="${inscripcion.cod_centro}"><a href="https://gestiona.comunidad.madrid/wpad_pub/run/j/MostrarConsultaGeneral.icm?tipoCurso=ADM&sinboton=S" target="_BLANK" title="Buscador de Centros Comunidad de Madrdid"><img src="../img/find.png" align="middle"></a>  
+Localidad: <input name="loc_centro" id="loc_centro" onkeyup="document.getElementById('cod_centro').value='';this.value=this.value.toUpperCase();Candidatos()" maxlength="30" size="30" value="${inscripcion.loc_centro}"><br>
+<span id="centros"></span><hr/>
 DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
  <table style="width:100%">
   <tr>
@@ -345,7 +355,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
 <input name="CANCELAR" value="CANCELAR" type="button" onclick="ocultaEditor()">
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="CreaCopiaSolicitud" value="CreaCopiaSolicitud" type="button" onclick="CreaCopiaSol();">
 <hr><p><br>&nbsp;&nbsp;&nbsp;++Mueve la solicitud a la Gymkana de
-<select onchange="DesplazaA(this.value);" >
+<select id="yincanaC" onchange="DesplazaA(this.value);" >
     <option id ="blanco" value="#" selected></option>
     <% for (let i=0;i<yincanas.length;i++){ %>
         <option id ="<%= yincanas[i].utilidad %>" value="<%= yincanas[i].id %>" ><%= yincanas[i].utilidad %></option>
@@ -359,6 +369,8 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             document.getElementById('decrip').style.display = "none"
             //document.getElementById('decrip').style.visibility.zIndex='3';
             document.getElementById('alumno').innerHTML = html;
+            PonTipos();//para que salga el select con TIPOS DE CENTROS
+            document.getElementById('tipoC').value=inscripcion.tipoC
             document.getElementById('alumno').style.visibility = 'visible';
             document.getElementById('alumno').style.display = "block";
 
@@ -390,7 +402,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                 }
 
                 //alert(cambiada+'\n'+JSON.stringify(datosLeidos));
-                alert(cambiada + '\n' + JSON.stringify(inscripcionEditada));
+                //alert(cambiada + '\n' + JSON.stringify(inscripcionEditada));
                 if (cambiada) {
                     document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
                     let conCambios = { id: inscripcionEditada.id, valor: Aes.Ctr.encryptFijo(JSON.stringify(datosLeidos), inscripcionEditada.claveAES, 256) };
@@ -406,7 +418,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                     // Transforma la respuesta. En este caso lo convierte a JSON
                     const json = await miFetch.json();
                     if (json.autorizado) {
-                        inscripcionEditada.valor=json.inscripcion.valor;//una vez grabado lo pasamos al del local storage
+                        inscripcionEditada.valor = json.inscripcion.valor;//una vez grabado lo pasamos al del local storage
                         document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
                         alert('cambios realizados');
                     } else alert('no se han hecho cambios');
@@ -414,20 +426,21 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             }
         }
 
-        const CreaCopiaSol=()=>{
-            let aux=getAbsolutePath().split('admin');
-            let urlComprobar=aux[0]+inscripcionEditada.yincanaId+`/comprueba?contador=${NUM_SOL}&clave=${CLAVE}`;
-            ponQR(urlComprobar);/*resultadoBD*/DatosSolicitud=tomaQR(urlComprobar,NUM_SOL,CLAVE);//NUM_SOL=DatosSolicitud[2];/*window.top.window.A(resultadoBD)*/;
-            DatosSolicitud=generaQR(urlComprobar,NUM_SOL,CLAVE);
-            alert('entramos: '+'../'+inscripcionEditada.yincanaId+'/LogoGymk18.jpg');
-            if(!datosLeidos.tipo)lee();
+        const CreaCopiaSol = () => {
+            let aux = getAbsolutePath().split('admin');
+            let urlComprobar = aux[0] + inscripcionEditada.yincanaId + `/comprueba?contador=${NUM_SOL}&clave=${CLAVE}`;
+            alert(urlComprobar);
+            //ponQR(urlComprobar);/*resultadoBD*/DatosSolicitud = tomaQR(urlComprobar, NUM_SOL, CLAVE);//NUM_SOL=DatosSolicitud[2];/*window.top.window.A(resultadoBD)*/;
+            DatosSolicitud = generaQR(urlComprobar, NUM_SOL, CLAVE);
+            alert('entramos: ' + '../' + inscripcionEditada.yincanaId + '/LogoGymk18.jpg');
+            if (!datosLeidos.tipo) lee();
             /*let inscripcioon=inscripciones.find(ins => ins.id === element.id)()
             NUM_SOL=datosLeidos.nsolF*/
-            getImageFromUrl('../'+inscripcionEditada.yincanaId+'/LogoGymk18.jpg', generaPDF);       
+            getImageFromUrl('../' + inscripcionEditada.yincanaId + '/LogoGymk18.jpg', generaPDF);
             //generaPDF('../'+inscripcionEditada.yincanaId+'/LogoGymk18.jpg');
         }
 
-        
+
         ///++++++++++++++++++se copian de hoja, tal vez se debe unificar
         /*function ponQR(url){
             jQuery('#qr').html('');
@@ -442,6 +455,51 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             //return [c,'<?php echo $URL."?contador=".$nVisita."&clave=".$CLAVE; ?>',<?php echo $nVisita.", ".$CLAVE; ?> ]; 
         return [c,url,cont, clave  ]; 
         }*/
+        const mueveEquipo = async () => {
+            if (document.getElementById('yincanaC').value === '#') {
+                alert('Se debe selecciona una localidad')
+            } else if (+document.getElementById('yincanaC').value === +inscripcionEditada.yincanaId) {
+                alert('Se debe selecciona una localidad diferente de la de partida')
+            } else {
+                //alert(document.getElementById('yincanaC').value);
+                if (validaCampos()) {
+                    alert('validados');
+                    //lee(); valida campo y los lee()
+                    let cambiada = false;
+                    for (i in datosLeidos) {
+                        if (datosLeidos[i] !== inscripcionEditada[i]) {
+                            cambiada = true;
+                            inscripcionEditada[i] = datosLeidos[i];
+                        }
+                    }
+
+                    //alert(cambiada+'\n'+JSON.stringify(datosLeidos));
+                    //alert(cambiada + '\n' + JSON.stringify(inscripcionEditada));
+                    let conCambios = { id: inscripcionEditada.id, nequipo:+document.getElementById('NEQUIPOED').value||null, encr:encriptakk(inscripcionEditada.claveAES,clavesPublicas[+document.getElementById('yincanaC').value-1]), yincanaId:+document.getElementById('yincanaC').value };
+                    if (cambiada) {
+                        document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
+                        conCambios.valor = Aes.Ctr.encryptFijo(JSON.stringify(datosLeidos), inscripcionEditada.claveAES, 256);
+                    } else alert('no se han hecho cambios');//alert(JSON.stringify(conCambios));
+                    const miFetch = await fetch(getAbsolutePath() + '/desplaza', {
+                        headers: {
+                            'Content-type': 'application/json'
+                        },
+                        method: 'POST',
+                        //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
+                        body: JSON.stringify(conCambios)
+                    });
+                    // Transforma la respuesta. En este caso lo convierte a JSON
+                    const json = await miFetch.json();
+                    if (json.autorizado) {
+                        if(cambiada)inscripcionEditada.valor = json.inscripcion.valor;//una vez grabado lo pasamos al del local storage
+                        let ii=aPresentar.findIndex((element) => element.id === inscripcionEditada.id)
+                        aPresentar.splice(ii,1);//quitamos la editada que ya no es de esta yincana
+                        document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
+                        alert('Inscripcion movida');
+                    }
+                }
+            }
+        }
     </script>
 </head>
 
@@ -558,6 +616,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
         //function limpiar(){ 
         //    document.body.innerHTML=document.body.innerHTML.split('<span>cortamos por aqui</span>')[0];
         //onload="IniciaCliente();GeneraK();document.getElementById('cliente').value=cliente;document.getElementById('keyCliente').innerHTML='clave='+key;"
+        
         ponEvento();
         IniciaCliente(); GeneraK(); document.getElementById('cliente').value = cliente;//document.getElementById('keyCliente').innerHTML='clave='+key;
 //}

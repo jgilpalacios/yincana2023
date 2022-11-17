@@ -22,7 +22,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use(session({
+app.use('/admin*',session({//solo se precisa para los middelware de admin
   secret: 'IAO%2BJBklL1Rkm98YtW%2BCXzkRHlX9XRXoYA%3D%3D',
   resave: false,
   saveUninitialized: true

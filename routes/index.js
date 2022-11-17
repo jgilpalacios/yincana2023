@@ -28,6 +28,8 @@ router.post('/admin/quitaSesionUser', inscripcionController.quitaSesionUser);
 
 router.post('/admin/modifica', inscripcionController.ponSesionUser, inscripcionController.adminModifica);
 
+router.post('/admin/desplaza', inscripcionController.ponSesionUser, inscripcionController.adminDesplaza);
+
 
 //router.get('/quizzes/new',                 quizController.new);
 //router.post('/quizzes',                    quizController.create);

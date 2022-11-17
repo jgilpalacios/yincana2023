@@ -140,114 +140,157 @@ exports.adminGet = async (req, res, next) => {
         }
     }
     if (autorizado) {*/
-        try {
-            let condicionesBusqueda = [{ yincanaId: yincana }];
-            if (estado !== '' && +estado < 5) {
-                condicionesBusqueda.push({ estado: estado });
-            } else {
-                if (+estado === 100) {
-                    condicionesBusqueda.push({ estado: { [Op.lt]: 4 } });
-                } else if (+estado === 12) {
-                    condicionesBusqueda.push({ [Op.or]: [{ estado: 1 }, { estado: 2 }, { estado: 3 }] });
-                }
+    try {
+        let condicionesBusqueda = [{ yincanaId: yincana }];
+        if (estado !== '' && +estado < 5) {
+            condicionesBusqueda.push({ estado: estado });
+        } else {
+            if (+estado === 100) {
+                condicionesBusqueda.push({ estado: { [Op.lt]: 4 } });
+            } else if (+estado === 12) {
+                condicionesBusqueda.push({ [Op.or]: [{ estado: 1 }, { estado: 2 }, { estado: 3 }] });
             }
-            if (fechaIn !== '') {
-                condicionesBusqueda.push({ solicitada: { [Op.gte]: fechaIn } });
-            }
-            if (fechaFin !== '') {
-                condicionesBusqueda.push({ solicitada: { [Op.lte]: fechaFin } });
-            }
-            let findOptions = {};
-            findOptions.where = { [Op.and]: condicionesBusqueda }
-
-            let inscripciones = await models.Inscripcion.findAll(findOptions);
-            //console.log('+++++++++',JSON.stringify(condicionesBusqueda));
-            //let yincanas = await models.Yincana.findAll();
-            //console.log('+++++++++++++++++', JSON.stringify(yincanas))
-            //res.render('admin', { yincanas });
-            res.send(JSON.stringify({ inscripciones, autorizado: true }));
-        } catch (error) {
-            console.log(error);
         }
+        if (fechaIn !== '') {
+            condicionesBusqueda.push({ solicitada: { [Op.gte]: fechaIn } });
+        }
+        if (fechaFin !== '') {
+            condicionesBusqueda.push({ solicitada: { [Op.lte]: fechaFin } });
+        }
+        let findOptions = {};
+        findOptions.where = { [Op.and]: condicionesBusqueda }
+
+        let inscripciones = await models.Inscripcion.findAll(findOptions);
+        //console.log('+++++++++',JSON.stringify(condicionesBusqueda));
+        //let yincanas = await models.Yincana.findAll();
+        //console.log('+++++++++++++++++', JSON.stringify(yincanas))
+        //res.render('admin', { yincanas });
+        res.send(JSON.stringify({ inscripciones, autorizado: true }));
+    } catch (error) {
+        console.log(error);
+    }
     /*} else {
         res.send(JSON.stringify({ autorizado: false }));
     }*/
 };
 
+const pasaAHistorico = async (inscrip) => {
+    try {
+        let his_inscripcion = models.His_inscripcion.build({
+            hid: inscrip.id,
+            yincanaId: inscrip.yincanaId,
+            nequipo: inscrip.nequipo,
+            nsol: inscrip.nsol,
+            clave: inscrip.clave,
+            encr: inscrip.encr,
+            valor: inscrip.valor,
+            solicitada: inscrip.solicitada,
+            recibida: inscrip.recibida,
+            estado: inscrip.estado,
+        });
+        await his_inscripcion.save();
+    } catch (error) {
+        trow (error)
+    }
+}
+
 exports.adminUpdate = async (req, res, next) => {
     //if (req.session.admin) {//si no se es administrador
-        let inscripciones = [];
-        for (i in req.body) {
-            if (req.body[i][0] === 'ESTADO') {
-                if (!inscripciones[req.body[i][1]]) inscripciones[req.body[i][1]] = {};
-                inscripciones[req.body[i][1]].estado = +req.body[i][2];
-            } else if (req.body[i][0] === 'NEQUIPO') {
-                if (!inscripciones[req.body[i][1]]) inscripciones[req.body[i][1]] = {};
-                inscripciones[req.body[i][1]].nequipo = +req.body[i][2];
-            }
+    let inscripciones = [];
+    for (i in req.body) {
+        if (req.body[i][0] === 'ESTADO') {
+            if (!inscripciones[req.body[i][1]]) inscripciones[req.body[i][1]] = {};
+            inscripciones[req.body[i][1]].estado = +req.body[i][2];
+        } else if (req.body[i][0] === 'NEQUIPO') {
+            if (!inscripciones[req.body[i][1]]) inscripciones[req.body[i][1]] = {};
+            inscripciones[req.body[i][1]].nequipo = +req.body[i][2];
         }
+    }
 
-        const t = await sequelize.transaction();
-        try {
-            let actualizamos = [];
-            for (j = 0; j < inscripciones.length; j++) {
-                //inscripciones.forEach(async (item, j) =>{
-                //if(item){
-                if (inscripciones[j]) {
+    const t = await sequelize.transaction();
+    try {
+        let actualizamos = [];
+        for (j = 0; j < inscripciones.length; j++) {
+            //inscripciones.forEach(async (item, j) =>{
+            //if(item){
+            if (inscripciones[j]) {
 
-                    let inscrip = await models.Inscripcion.findByPk(j);
-                    let his_inscripcion = models.His_inscripcion.build({
-                        hid: inscrip.id,
-                        yincanaId: inscrip.yincanaId,
-                        nequipo: inscrip.nequipo,
-                        nsol: inscrip.nsol,
-                        clave: inscrip.clave,
-                        encr: inscrip.encr,
-                        valor: inscrip.valor,
-                        solicitada: inscrip.solicitada,
-                        recibida: inscrip.recibida,
-                        estado: inscrip.estado,
-                    });
-                    //console.log('++++++',JSON.stringify(inscrip));
-                    //for (k in item){
-                    for (k in inscripciones[j]) {
-                        //inscrip[k]=item[k];
-                        inscrip[k] = inscripciones[j][k]
-                    }
-                    if (!inscrip.recibida) inscrip.recibida = new Date();
-                    //inscrip =
-                    await his_inscripcion.save();
-                    await inscrip.save();
-                    //console.log('-------',JSON.stringify(inscrip));
-                    actualizamos.push(inscrip);
-                    //console.log('-------',JSON.stringify(actualizamos));
-
-                    //actualizamos+=j+', ';
+                let inscrip = await models.Inscripcion.findByPk(j);
+                /*let his_inscripcion = models.His_inscripcion.build({
+                    hid: inscrip.id,
+                    yincanaId: inscrip.yincanaId,
+                    nequipo: inscrip.nequipo,
+                    nsol: inscrip.nsol,
+                    clave: inscrip.clave,
+                    encr: inscrip.encr,
+                    valor: inscrip.valor,
+                    solicitada: inscrip.solicitada,
+                    recibida: inscrip.recibida,
+                    estado: inscrip.estado,
+                });*/
+                await pasaAHistorico(inscrip);
+                //console.log('++++++',JSON.stringify(inscrip));
+                //for (k in item){
+                for (k in inscripciones[j]) {
+                    //inscrip[k]=item[k];
+                    inscrip[k] = inscripciones[j][k]
                 }
-                //});
-            }
-            t.commit();
-            //console.log('-------',JSON.stringify({inscripciones,actualizamos}));
-            res.send(JSON.stringify({actualizamos, autorizado: true}));
-        } catch (error) {
-            t.rollback();
-            console.log(error);
-        }
+                if (!inscrip.recibida) inscrip.recibida = new Date();
+                //inscrip =
+                //await his_inscripcion.save();
+                await inscrip.save();
+                //console.log('-------',JSON.stringify(inscrip));
+                actualizamos.push(inscrip);
+                //console.log('-------',JSON.stringify(actualizamos));
 
-        
-        
-   // }
+                //actualizamos+=j+', ';
+            }
+            //});
+        }
+        t.commit();
+        //console.log('-------',JSON.stringify({inscripciones,actualizamos}));
+        res.send(JSON.stringify({ actualizamos, autorizado: true }));
+    } catch (error) {
+        t.rollback();
+        console.log(error);
+    }
+
+
+
+    // }
 };
 
 exports.adminModifica = async (req, res, next) => {
-    let {id, valor} =req.body;
+    let { id, valor } = req.body;
     const t = await sequelize.transaction();
-    try{
+    try {
         let inscripcion = await models.Inscripcion.findByPk(id);
-        inscripcion.valor=valor;
+        await pasaAHistorico(inscripcion);
+        inscripcion.valor = valor;
         await inscripcion.save();
         t.commit();
-        res.send(JSON.stringify({inscripcion, autorizado: true}));
+        res.send(JSON.stringify({ inscripcion, autorizado: true }));
+    } catch (error) {
+        t.rollback();
+        console.log(error);
+    }
+}
+
+//desplaza
+exports.adminDesplaza = async (req, res, next) => {
+    let { id, nequipo, encr, valor, yincanaId } = req.body;
+    const t = await sequelize.transaction();
+    //console.log('+++++++', id, '\n', encr, '\n', valor, '\n', yincanaId);
+    try {
+        let inscripcion = await models.Inscripcion.findByPk(id);
+        await pasaAHistorico(inscripcion);
+        inscripcion.nequipo = nequipo;
+        inscripcion.encr = encr;
+        if (valor) inscripcion.valor = valor;
+        inscripcion.yincanaId = yincanaId;
+        await inscripcion.save();
+        t.commit();
+        res.send(JSON.stringify({ inscripcion, autorizado: true }));
     } catch (error) {
         t.rollback();
         console.log(error);
@@ -266,39 +309,40 @@ exports.ponSesionUser = async (req, res, next) => {
 
     let clave_admin = '21232f297a57a5a743894a0e4a801fc3';//md5(admin);
     //console.log(key_yincanas, '\n', yinkananas_autorizadas[0], '\n', yinkananas_autorizadas[1], '\n', yincana - 1, '\n',
-     //   req.session.admin, '\n', key_admin)
-    if (req.session.admin) {console.log('+++++++++++','se entra')
+    //   req.session.admin, '\n', key_admin)
+    if (req.session.admin) {
+        console.log('+++++++++++', 'se entra')
         next();
     } else {
         const { key_yincanas, key_admin, yincana } = req.body;
-        if(!key_yincanas||!key_admin||!yincana){
-            console.log('-------','se entra')
+        if (!key_yincanas || !key_admin || !yincana) {
+            console.log('-------', 'se entra')
             delete req.session.admin;
-            res.send({autorizado:false});
-        }else{
+            res.send({ autorizado: false });
+        } else {
             console.log('************* ', key_yincanas, key_admin, yincana);
             if (key_admin === clave_admin && key_yincanas[yincana - 1] === yinkananas_autorizadas[yincana - 1]) {
-                console.log('++++++++++++ ',yinkananas_autorizadas,clave_admin);
+                console.log('++++++++++++ ', yinkananas_autorizadas, clave_admin);
                 req.session.admin = true;
                 next();
-            }else{
-                res.send({autorizado:false});
+            } else {
+                res.send({ autorizado: false });
             }
         }
-        
+
     }
-    
+
 }
 
 exports.quitaSesionUser = async (req, res, next) => {
-    let borrados='';
-    console.log('+++++++++**********',JSON.stringify(req.body));
-    for(i=0;i<req.body.users.length;i++){
+    let borrados = '';
+    console.log('+++++++++**********', JSON.stringify(req.body));
+    for (i = 0; i < req.body.users.length; i++) {
         delete req.session[req.body.users[i]];
-        borrados+=req.body.users[i]+',';
+        borrados += req.body.users[i] + ',';
     }
-    console.log('++++++++.....'+borrados);
-    res.send({borrados})
+    console.log('++++++++.....' + borrados);
+    res.send({ borrados })
 }
 
 /*const paginate = require('../helpers/paginate').paginate;
