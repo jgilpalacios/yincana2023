@@ -180,13 +180,14 @@ const generaDatos=()=>{
 	let encr=EncrMensaje(claveAes);
 	let clave=calcMD5(claveAes);
 	lee();
-	let {tipo,tipoC,nombre_centro, loc_centro, cod_centro, Ap11, Ap12, Nombre1, Edad1, Ap21, Ap22, Nombre2, Edad2, Ap31, Ap32, Nombre3, Edad3, Ap41, Ap42, Nombre4, Edad4, ApP1, ApP2, NomP, TelP1, TelP2, EmailP}=datosLeidos; 
+	/*let {tipo,tipoC,nombre_centro, loc_centro, cod_centro, Ap11, Ap12, Nombre1, Edad1, Ap21, Ap22, Nombre2, Edad2, Ap31, Ap32, Nombre3, Edad3, Ap41, Ap42, Nombre4, Edad4, ApP1, ApP2, NomP, TelP1, TelP2, EmailP}=datosLeidos; 
 	let datos={tipo, tipoC, nombre_centro,loc_centro, cod_centro,
 		Ap11, Ap12, Nombre1, Edad1,
 		Ap21, Ap22, Nombre2, Edad2,
 		Ap31, Ap32, Nombre3, Edad3,
 		Ap41, Ap42, Nombre4, Edad4,
-		ApP1, ApP2, NomP, TelP1, TelP2, EmailP}
+		ApP1, ApP2, NomP, TelP1, TelP2, EmailP}*/
+	let datos=	datosLeidos;//ya se cargan en generador.js
 	let valor=Aes.Ctr.encryptFijo(JSON.stringify(datos),claveAes,256);
 	let dcc=Aes.Ctr.decrypt(valor,claveAes,256);
 	return {AES,encr,clave,datos: JSON.stringify(datos),valor,dcc};

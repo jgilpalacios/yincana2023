@@ -708,7 +708,33 @@ const MuestraDuplicados=(Duplicados)=>{
         onclick="/*LanzaCargaCambioEstadoSin();*/cargaOperaciones();" />
     <input id="BuscaDuplicados" type="button" value="BuscaDuplicados" onclick="BuscaDuplicados();" />
     <input type="button" value="stringify Privkeys" onclick="alert(JSON.stringify(clavesPrivadas))" />
-    
+    <input id="kkk" type="button" value="kkk" onclick="if(!completado) A(msgDisp,completado)"
+        style="visibility:hidden" />
+    <input id="kkkk" type="button" value="kkkk" style="visibility:hidden" />
+    <form id="genk" action="paso2.php" target="resk" method="POST">
+        <input type="hidden" id="cliente" name="cliente" value="0">
+        <input type="hidden" id="ClaveAdmin" name="ClaveAdmin" value="0">
+        <input type="hidden" id="MD5KprivEncr" name="MD5KprivEncr" value="0">
+        <input type="hidden" id="BDATOS" name="BDATOS" value="INSCRIPCIONES_BOMO">
+        <input type="hidden" id="ESTADO" name="ESTADO" value="100">
+        <input type="hidden" id="FECHAINI" name="FECHAINI" value="">
+        <input type="hidden" id="FECHAFIN" name="FECHAFIN" value="">
+        <input type="hidden" id="ORDRECV" name="ORDRECV" value="false">
+        <input type="hidden" id="operaciones" name="operaciones" value="">
+        <input type="hidden" id="instante" name="instante" value="">
+        <!-- parte de edicion de los componentes del grupo -->
+        <input type="hidden" id="DatosEditados" name="DatosEditados" value="">
+        <input type="hidden" id="IDEditados" name="IDEditados" value="">
+        <!-- pare añadida para mover equipos de gymkana -->
+        <input type="hidden" id="DatosEditados2" name="DatosEditados2" value="">
+        <input type="hidden" id="BDATOS2" name="BDATOS2" value="">
+        <input type="hidden" id="ESTADO2" name="ESTADO2" value="">
+        <input type="hidden" id="NEQUIPO2" name="NEQUIPO2" value="0">
+        <input type="hidden" id="CONTADOR" name="CONTADOR" value="">
+        <!--<input type="hidden" id="CLAVE" name="CLAVE" value="">
+        <input type="hidden" id="SOLICITADA" name="SOLICITADA" value="">
+        <input type="hidden" id="NSOL" name="NSOL" value="">-->
+    </form><br>
     <iframe name="frameditar" id="frameditar" src="./edAlumnos.php" width="100%" height="0px"
         style="visibility: hidden;"></iframe>
     <div id="decrip" style="visibility: visible; z-index: 4"></div>
@@ -750,8 +776,23 @@ function mostrarContenido(contenido) {
   //lo pasamos a las claves privadas, sustituiría el de desencriptakk
   clavesPrivadas=JSON.parse(contenido.substring(0,n))
 }
-ponEvento();
+        //function limpiar(){ 
+        //    document.body.innerHTML=document.body.innerHTML.split('<span>cortamos por aqui</span>')[0];
+        //onload="IniciaCliente();GeneraK();document.getElementById('cliente').value=cliente;document.getElementById('keyCliente').innerHTML='clave='+key;"
+        
+        ponEvento();
+        //IniciaCliente(); GeneraK(); document.getElementById('cliente').value = cliente;//document.getElementById('keyCliente').innerHTML='clave='+key;
+//}
+//setTimeout(limpiar, 40);
+
+//var myVar=setInterval(function(){ alert("Hello");alert(document.body.innerHTML); clearInterval(myVar);}, 3000);
     </script>
+    <!--<br/>
+<br/>
+<span>cortamos por aqui</span>
+<br/>
+<br/>-->
+
 
 </body>
 
