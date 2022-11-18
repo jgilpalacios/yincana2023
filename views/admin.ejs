@@ -44,6 +44,14 @@
 
         let inscripciones = JSON.parse(localStorage.getItem('inscripciones')) || [];
         let aPresentar = [];
+        
+        //para probar que AES es muy rapida en comparacion
+        /*alert('paso1:\n'+localStorage.getItem('inscripciones'))
+        let pppkkk111=Aes.Ctr.encrypt(localStorage.getItem('inscripciones'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256);
+        alert('paso2:\n'+pppkkk111)
+        let lllpppjkjj11=Aes.Ctr.decrypt(pppkkk111, 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256) 
+        alert('paso3:\n'+lllpppjkjj11);*/
+
         //alert(localStorage.getItem('inscripciones'));
         function getAbsolutePath() {
             var loc = window.location;
@@ -172,7 +180,11 @@
             return '<table style="text-align: center; width: 100% ;" cellspacing="1" cellpadding="1" border="1"><tbody>' + cabecera + cuerpo + '</tbody></table>';
 
         }
-        const LanzaCargaCambioEstado = async () => {
+
+        ////para barra de progreso
+        let widthPbar=0;
+
+        const LanzaCargaCambioEstado = async () => {//alert('vamos');
             let yincana = document.getElementById('localidad').value;
             let estado = document.getElementById('estado').value;
             let diaIn = document.getElementById('diaIn').value;
@@ -182,7 +194,7 @@
             let fechaIn = Atimestamp(diaIn, mesIn);
             let fechaFin = Atimestamp(diaFin, mesFin);
 
-
+            
             //para gestionar la autenticacion:
             let key_yincanas = [];
             clavesPrivadas.forEach(yi => {
@@ -207,8 +219,29 @@
             if (json.autorizado) {
                 let seModificaIns = false;
                 aPresentar = [];
-                json.inscripciones.forEach(element => {//alert('sii');
+                ////para barra de progreso
+                let nfilas=json.inscripciones.length;
+                //move();
+                DatosProgreso={tanda:json.inscripciones,
+                partida:0,cuantas:2,seModificaIns:false,
+                nfilas:nfilas};
+                setTimeout(veCargando, 1);
+                //veCargando(/*json.inscripciones,0,2,seModificaIns,nfilas*/);
+                /*json.inscripciones.forEach((element, avanceI) => {//alert('sii');
                     //aPresentar.push(element.id);
+                    ////para barra de progreso                    
+                    widthPbar= Math.floor(avanceI/nfilas*100);
+                    //document.getElementById('miBarra').value=widthPbar;
+		            //document.getElementById('miAvance').innerHTML=widthPbar+'%';
+                    if(avanceI%2===0){//alert('vamos por'+widthPbar)
+                      try{
+                        if(await espera()){
+                            let i=0;
+                        }
+                      }catch(error){
+
+                      }
+                     }       
                     let inscripcion = inscripciones.find(ins => ins.id === element.id);
                     //alert('llll: '+JSON.stringify( inscripcion));
                     let claveAES;
@@ -223,7 +256,7 @@
                             nuevoElemento[item] = element[item];
                         });
                         nuevoElemento['claveAES'] = claveAES;
-                        [/*'texto_centro',*/ 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
+                        [ 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
                             'Ap11', 'Ap12', 'Nombre1', 'Edad1',
                             'Ap21', 'Ap22', 'Nombre2', 'Edad2',
                             'Ap31', 'Ap32', 'Nombre3', 'Edad3',
@@ -241,7 +274,7 @@
                         //alert('se modifica el valor antiguo');
                         if (inscripcion.valor !== element.valor) {
                             resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, inscripcion.claveAES, 256));
-                            [/*'texto_centro'*/, 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
+                            [ 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
                                 'Ap11', 'Ap12', 'Nombre1', 'Edad1',
                                 'Ap21', 'Ap22', 'Nombre2', 'Edad2',
                                 'Ap31', 'Ap32', 'Nombre3', 'Edad3',
@@ -267,13 +300,14 @@
                 //alert(JSON.stringify(json));
                 //alert(aPresentar);
                 document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
-                //alert(yincana+' +++ '+estado+' +++ '+diaIn+' +++ '+mesIn+' jj '+diaFin+' +++ '+mesFin+' fechas '+fechaIn+' +++ '+fechaFin);
+                //alert(yincana+' +++ '+estado+' +++ '+diaIn+' +++ '+mesIn+' jj '+diaFin+' +++ '+mesFin+' fechas '+fechaIn+' +++ '+fechaFin);*/
             } else {
                 alert('Clave de administrador incorrecta o gymkana no disponible');
                 document.getElementById('decrip').innerHTML = 'Debe volver a poner las credenciales y recargar'
 
             }
         }
+    
 
         const Atimestamp = (dia, mes) => {
             if (dia.trim() === '' || mes === '') {
@@ -452,21 +486,6 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             //generaPDF('../'+inscripcionEditada.yincanaId+'/LogoGymk18.jpg');
         }
 
-
-        ///++++++++++++++++++se copian de hoja, tal vez se debe unificar
-        /*function ponQR(url){
-            jQuery('#qr').html('');
-            //jQuery('#qr').qrcode('<?php echo $URL."?contador=".$nVisita."&clave=".$CLAVE;?>');
-        jQuery('#qr').qrcode(url);
-        }*/
-        //ponQR();
-
-        /*function tomaQR(url,cont,clave){
-            var c=$('#qr').children('canvas');
-            c=document.getElementById('qr').firstChild.toDataURL();
-            //return [c,'<?php echo $URL."?contador=".$nVisita."&clave=".$CLAVE; ?>',<?php echo $nVisita.", ".$CLAVE; ?> ]; 
-        return [c,url,cont, clave  ]; 
-        }*/
         const mueveEquipo = async () => {
             if (document.getElementById('yincanaC').value === '#') {
                 alert('Se debe selecciona una localidad')
@@ -616,11 +635,6 @@ const BuscaDuplicados=()=>{
 	}else{
         let listar=confirm(MuestraDuplicados(Duplicados)+'\n¿Los quieres en un archivo CSV?');
 		if (listar){
-            /*let nombres=[];
-            for (i in Duplicados[0]){
-                nombres.push(i);
-            }
-            arrayObjToCsv(Duplicados,nombres);*/
             arrayObjToCsv(Duplicados);
         }
 	}
@@ -635,6 +649,99 @@ const MuestraDuplicados=(Duplicados)=>{
 	}
 	return aux;
 }
+
+///barra de progreso
+let DatosProgreso={
+    tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
+}
+const veCargando=  (/*tanda,partida,cuantas,seModificaIns,nfilas*/)=>{//alert('entramos'+tanda.length);
+    let {tanda,partida,cuantas,seModificaIns,nfilas}=DatosProgreso;
+    if(partida===0)document.getElementById('decrip').innerHTML = '';
+    //tanda.forEach((element, avanceI) => {//alert('sii');
+    let final=partida+cuantas;
+    if(DatosProgreso.nfilas<final) final=DatosProgreso.nfilas;
+    //alert(final+'-----'+DatosProgreso.nfilas)
+    for (let avanceI=partida;avanceI<final;avanceI++){
+            element=tanda[avanceI];
+                    //aPresentar.push(element.id);
+                    ////para barra de progreso                    
+                    widthPbar= Math.floor(avanceI/nfilas*100);
+                    document.getElementById('miBarra').value=widthPbar;
+		            document.getElementById('miAvance').innerHTML=widthPbar+'%';
+       
+                    let inscripcion = inscripciones.find(ins => ins.id === element.id);
+                    //alert('llll: '+JSON.stringify( inscripcion));
+                    let claveAES;
+                    let resultado;
+                    let seAnnade = false;
+                    let nuevoElemento = {};//alert(inscripcion)
+                    //alert('vamos por'+widthPbar)
+                    if (!inscripcion) {//alert('hhhh');
+                        seModificaIns = true;
+                        claveAES = desencriptakk(element.encr, clavesPrivadas[+element.yincanaId - 1]);
+                        resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, claveAES, 256));
+                        ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
+                            nuevoElemento[item] = element[item];
+                        });
+                        nuevoElemento['claveAES'] = claveAES;
+                        [ 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
+                            'Ap11', 'Ap12', 'Nombre1', 'Edad1',
+                            'Ap21', 'Ap22', 'Nombre2', 'Edad2',
+                            'Ap31', 'Ap32', 'Nombre3', 'Edad3',
+                            'Ap41', 'Ap42', 'Nombre4', 'Edad4',
+                            'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP'].forEach(item => {
+                                nuevoElemento[item] = resultado[item];
+                            })
+                        seAnnade = true;//se ha creado uno nuevo.
+                    } else if (inscripcion.updatedAt < element.updatedAt) {
+                        seModificaIns = true;
+                        nuevoElemento = inscripcion;
+                        ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
+                            nuevoElemento[item] = element[item];
+                        });
+                        //alert('se modifica el valor antiguo');
+                        if (inscripcion.valor !== element.valor) {
+                            resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, inscripcion.claveAES, 256));
+                            [, 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
+                                'Ap11', 'Ap12', 'Nombre1', 'Edad1',
+                                'Ap21', 'Ap22', 'Nombre2', 'Edad2',
+                                'Ap31', 'Ap32', 'Nombre3', 'Edad3',
+                                'Ap41', 'Ap42', 'Nombre4', 'Edad4',
+                                'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP'].forEach(item => {
+                                    nuevoElemento[item] = resultado[item];
+                                });
+                        }
+
+
+                    }
+                    //claveAES=desencriptakk(element.encr, clavesPrivadas[+element.yincanaId-1]);
+                    //resultado=JSON.parse(Aes.Ctr.decrypt(element.valor,claveAES,256));
+
+                    //alert(JSON.stringify(resultado));
+                    if (seAnnade) {
+                        inscripciones.push(nuevoElemento);
+                        aPresentar.push(nuevoElemento);
+                    } else aPresentar.push(inscripcion);
+    }
+               // });
+                if (seModificaIns) localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
+                //alert(JSON.stringify(inscripciones))
+                //alert(JSON.stringify(json));
+                //alert(aPresentar);
+                /*DatosProgreso={
+    tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
+}*/
+                DatosProgreso.partida+=DatosProgreso.cuantas;
+                DatosProgreso.seModificaIns=seModificaIns;
+                //DatosProgreso.nfilas
+                //alert(DatosProgreso.partida+'; '+nfilas);
+                if(DatosProgreso.partida>=nfilas) {
+                    document.getElementById('miBarra').value=100;
+		            document.getElementById('miAvance').innerHTML='100%';
+                    document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
+                }else setTimeout(veCargando, 1);
+}
+
 
     </script>
 </head>
@@ -698,8 +805,7 @@ const MuestraDuplicados=(Duplicados)=>{
         ORDENADO POR F. REC. <input type="checkbox" value="1"
             onchange="document.getElementById('ORDRECV').value=this.checked">
     </div>
-    <div align="center"><progress id="miBarra" max="100" value="0"
-            onchange="/*alert('..');A(msgDisp,completado);alert('..')*/"></progress><span id="miAvance">0%</span></div>
+    <div align="center"><progress id="miBarra" max="100" value="0"></progress><span id="miAvance">0%</span></div>
     <br />
     <!--<input id="acceder" type="button" value="acceder" onclick="haHabidoEdicion=false;ocultaEditor();document.getElementById('reiframe').style.visibility='visible';document.getElementById('decrip').innerHTML='';iniciaBarra();/*cucu=setInterval(gestBarra, 1000);*/LanzaConexion();cargaOperaciones();document.getElementById('genk').submit();" />-->
     <input id="acceder" type="button" value="acceder" onclick="LanzaCargaCambioEstado();" />
