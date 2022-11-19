@@ -31,22 +31,54 @@
 
     <script type="text/javascript">
 
-        let clavesPublicas=[<% for (let i=0;i<yincanas.length;i++) { %>
-            `<%= yincanas[i].clavePublica %>`<% if (i<yincanas.length-1){ %>,<% } %>
+        let clavesPublicas = [<% for (let i = 0; i < yincanas.length; i++) { %>
+            `<%= yincanas[i].clavePublica %>` <% if (i < yincanas.length - 1) { %>,<% } %>
             <% } %>
         ];
 
-        let yincanas=[<% for (let i=0;i<yincanas.length;i++) { %>
-            { id:<%= yincanas[i].id %>, utilidad:`<%= yincanas[i].utilidad %>` }<% if (i<yincanas.length-1){ %>,<% } %>
+        let yincanas = [<% for (let i = 0; i < yincanas.length; i++) { %>
+            { id:<%= yincanas[i].id %>, utilidad: `<%= yincanas[i].utilidad %>` } <% if (i < yincanas.length - 1) { %>,<% } %>
             <% } %>
         ];
 
+        ///Variables globales:
+        /**
+         *  inscripciones: tiene copia de las inscripciones desencriptadas, que se han ido descargando,
+         *                 las guarda encriptadas aes en localStorage de cara a agilizar posteriores accesos.
+         *  aPresentar: guarda las inscripciones de la yincana que se está visualizando, en realidad enlaza las
+         *              guardadas en inscripciones. se utliza para visualizar, realizar ordenaciones, busquedas
+         *              de repetidos, etc...
+         *  DatosProgreso: guarda un objeto con los parametros de llamada a la fucion: veCargando, que se invoca
+         *                 mediante setTimeout, para que se refresque la bara de progreso (si no se hace así no funciona) 
+         *  widthPbar: grado de avance de la barra de progreso
+         *  totalOperaciones y operacionesPendientes: se guardan los cambios de estado o numero de equipo
+         *                                            codificadas en total... y si ha habido en oper...pendientes,
+         *                                            para luego lanzar un proceso que las cargue todas en bloque.
+         *  clavesPrivadas: para gestionar el encriptado de los datos.
+         */
 
-        let inscripciones = JSON.parse(localStorage.getItem('inscripciones')) || [];
+        let inscripciones = [];
+        if (localStorage.getItem('inscripciones')) inscripciones = JSON.parse(Aes.Ctr.decrypt(localStorage.getItem('inscripciones'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
         let aPresentar = [];
-        
+        ///barra de progreso
+        let DatosProgreso = {
+            tanda: '', partida: 0, cuantas: 2, seModificaIns: false, nfilas: 0
+        }
+        ////para barra de progreso
+        let widthPbar = 0;
+        /// operaciones de cambo de estado  asignación de número de equipo.
+        let totalOperaciones = {};
+        let operacionesPendientes = false;
+
+        ///Claves privadas, se deben cargar localmente para garantizar la privacidad
+        // de las inscrpciones, se usa esta variable global, luego se hace un resumen
+        // MD5 que se usa en local en key_yincanas, este se manda al servidor para
+        // solo devolver datos encriptados si se demuestra que se tien la clave privada
+        // al poder enviar el resumen, se gestionan en un array, cuyo indice es yincanaId-1
+        let clavesPrivadas=[];
+        /*
         //para probar que AES es muy rapida en comparacion
-        /*alert('paso1:\n'+localStorage.getItem('inscripciones'))
+        alert('paso1:\n'+localStorage.getItem('inscripciones'))
         let pppkkk111=Aes.Ctr.encrypt(localStorage.getItem('inscripciones'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256);
         alert('paso2:\n'+pppkkk111)
         let lllpppjkjj11=Aes.Ctr.decrypt(pppkkk111, 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256) 
@@ -66,6 +98,8 @@
             } else return '';
         }
 
+        ///para realizar las actualizaciones de estado, o numero de equipo
+        //en Base de Datos
         const cargaOperaciones = async () => {
             alert('se lanza')
             if (operacionesPendientes) {
@@ -89,7 +123,9 @@
                             if (actualiza[item] !== inscripcion[item]) actualiza[item] = inscripcion[item];
                         });
                     })
-                    localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
+                    //localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
+                    //Aes.Ctr.encrypt(JSON.stringify(inscripciones),'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo',256)
+                    localStorage.setItem('inscripciones', Aes.Ctr.encrypt(JSON.stringify(inscripciones), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
                     totalOperaciones = {};
                     operacionesPendientes = false;
                     //alert(JSON.stringify(aPresentar));
@@ -103,6 +139,8 @@
             }
 
         }
+
+        ///para realizar ordenaciones en el listado.
         const OrdLocal = (criterio) => { //alert('se emtra');
             //alert (criterio);
             //alert(miArrayDeObjetos[0]['ID']);
@@ -135,8 +173,10 @@
             }
         }
 
-        let totalOperaciones = {};
-        let operacionesPendientes = false;
+
+        // Para registrar cada operación de cambio de estado o número de equipo,
+        //luego se lanza el proceso que lleva a cabo todas en la Base de datos
+        //con: cargaOperaciones
         const registraOperacion = (op) => {
             let objeto = op.split(',');//alert(objeto);
             if (objeto[2] < 0) {
@@ -147,6 +187,7 @@
             //alert(op+'registrado'+objeto+';'+JSON.stringify(totalOperaciones));
         }
 
+        //crea el html de las inscripciones aPresentar
         const CreaTablaInscripciones = (seleccion) => {
             let cabecera = `<tr><th>ACCIÓN</th><th>ID</th><th class="ordenable" onclick="OrdLocal('NEQUIPO')">NºEQUIPO</th><th class="ordenable" onclick="OrdLocal('NSOL')">NSOL</th><th>CLAVE</th><th class="ordenable" onclick="OrdLocal('TIPO')">TIPO</th><th class="ordenable" onclick="OrdLocal('CODCENTRO')">CENTRO</th><th>ALUMNOS</th><th class="ordenable" onclick="OrdLocal('RESPONSABLE')">RESPONSABLE</th><th class="ordenable" onclick="OrdLocal('SOLICITADA')">SOLICITADA</th><th class="ordenable" onclick="OrdLocal('RECIBIDA')">RECIBIDA</th><th class="ordenable" onclick="OrdLocal('ESTADO')">ESTADO</th></tr>`;
             let cuerpo = '';
@@ -162,7 +203,7 @@
                     case 3: accion = 'LESPERA'; break;
                     case 4: accion = 'ANULADA'; break;
                 };//alert(id+accion);
-                let cuerpoAdd = `<td class="${accion}"><select onchange="registraOperacion(this.value);"><option value="ESTADO,${id}, -1" selected="selected"></option><option value="ESTADO,${id}, 0">GENERADA</option><option value="ESTADO,${id},1">RECIBIDA</option><option value="ESTADO,${id},2">ADMITIDA</option><option value="ESTADO,${id}, 3">L. ESPERA</option><option value="ESTADO,${id}, 4">ANULADA</option></select></td><td>${id}</td><td><input type="text" name="pin${id}" id="pin${id}" maxlength="3" size="3" onchange=";registraOperacion('NEQUIPO,${id}, '+this.value+'')" value="${inscripcion.nequipo || ''}"></td><td>${inscripcion.nsol}</td>
+                let cuerpoAdd = `<td class="${accion}" id="EstadE${id}"><select onchange="registraOperacion(this.value);"><option value="ESTADO,${id}, -1" selected="selected"></option><option value="ESTADO,${id}, 0">GENERADA</option><option value="ESTADO,${id},1">RECIBIDA</option><option value="ESTADO,${id},2">ADMITIDA</option><option value="ESTADO,${id}, 3">L. ESPERA</option><option value="ESTADO,${id}, 4">ANULADA</option></select></td><td>${id}</td><td><input type="text" name="pin${id}" id="pin${id}" maxlength="3" size="3" onchange=";registraOperacion('NEQUIPO,${id}, '+this.value+'')" value="${inscripcion.nequipo || ''}"></td><td>${inscripcion.nsol}</td>
             <td>${inscripcion.clave.substring(0, 8)}<br>${inscripcion.clave.substring(8, 16)}<br>${inscripcion.clave.substring(16, 24)}<br>${inscripcion.clave.substring(24)}</td><td class="${inscripcion.tipo}">${inscripcion.tipo.substring(0, 1).toUpperCase()}</td>
                     <td>${inscripcion.cod_centro}<br> ${inscripcion.tipoC + ' ' + inscripcion.nombre_centro}<br>(${inscripcion.loc_centro})</td><td onclick="muestraEditor(${id});" class="editable"><a name="filaEd${id}"><table><tbody>
                     <tr><td>${inscripcion.Ap11} ${inscripcion.Ap12}, ${inscripcion.Nombre1} ( ${inscripcion.Edad1 || ''})</td></tr>
@@ -170,7 +211,7 @@
                     <tr><td>${inscripcion.Ap31} ${inscripcion.Ap32}, ${inscripcion.Nombre3} ( ${inscripcion.Edad3 || ''})</td></tr>
                     <tr><td>${inscripcion.Ap41} ${inscripcion.Ap42}, ${inscripcion.Nombre4} ( ${inscripcion.Edad4 || ''})</td></tr></tbody></table></a></td>
                     <td><table><tbody><tr><td>${inscripcion.ApP1} ${inscripcion.ApP2}, ${inscripcion.NomP}</td></tr><tr><td>${inscripcion.TelP1}/ ${inscripcion.TelP2}</td></tr><tr><td>${inscripcion.EmailP}</td></tr></tbody></table></td>
-                    <td>${normalizaFecha(inscripcion.solicitada)}</td><td>${normalizaFecha(inscripcion.recibida)}</td><td class="${accion}">${accion}<br>(<b>${inscripcion.estado}</b>)</td></tr>`;
+                    <td>${normalizaFecha(inscripcion.solicitada)}</td><td>${normalizaFecha(inscripcion.recibida)}</td><td class="${accion}" id="EstadM${id}">${accion}<br>(<b>${inscripcion.estado}</b>)</td></tr>`;
                 cuerpo += cuerpoAdd;
             })
             //f3c3108138a84ea9b1ce32c8679cfa8d
@@ -181,9 +222,9 @@
 
         }
 
-        ////para barra de progreso
-        let widthPbar=0;
 
+        ///para realizar la busqueda inicial, de las inscripciones de la yincana
+        ///con las condiciones de búsqueda y luego se presentan.
         const LanzaCargaCambioEstado = async () => {//alert('vamos');
             let yincana = document.getElementById('localidad').value;
             let estado = document.getElementById('estado').value;
@@ -194,7 +235,7 @@
             let fechaIn = Atimestamp(diaIn, mesIn);
             let fechaFin = Atimestamp(diaFin, mesFin);
 
-            
+
             //para gestionar la autenticacion:
             let key_yincanas = [];
             clavesPrivadas.forEach(yi => {
@@ -217,97 +258,26 @@
             const json = await miFetch.json();
             //alert(json.length);
             if (json.autorizado) {
+                ///se configura el lanzamiento de la carga de las inscripciones, configurando la variable global: aPresentar, DatosProgreso
                 let seModificaIns = false;
                 aPresentar = [];
-                ////para barra de progreso
-                let nfilas=json.inscripciones.length;
-                //move();
-                DatosProgreso={tanda:json.inscripciones,
-                partida:0,cuantas:2,seModificaIns:false,
-                nfilas:nfilas};
+                let nfilas = json.inscripciones.length;
+                DatosProgreso = {
+                    tanda: json.inscripciones,
+                    partida: 0, cuantas: 2, seModificaIns: false,
+                    nfilas: nfilas
+                };
+                //lanzamos el proceso de actualizacion, de 2 en 2, 
+                //esperando 1 ms tras completarse.
                 setTimeout(veCargando, 1);
-                //veCargando(/*json.inscripciones,0,2,seModificaIns,nfilas*/);
-                /*json.inscripciones.forEach((element, avanceI) => {//alert('sii');
-                    //aPresentar.push(element.id);
-                    ////para barra de progreso                    
-                    widthPbar= Math.floor(avanceI/nfilas*100);
-                    //document.getElementById('miBarra').value=widthPbar;
-		            //document.getElementById('miAvance').innerHTML=widthPbar+'%';
-                    if(avanceI%2===0){//alert('vamos por'+widthPbar)
-                      try{
-                        if(await espera()){
-                            let i=0;
-                        }
-                      }catch(error){
-
-                      }
-                     }       
-                    let inscripcion = inscripciones.find(ins => ins.id === element.id);
-                    //alert('llll: '+JSON.stringify( inscripcion));
-                    let claveAES;
-                    let resultado;
-                    let seAnnade = false;
-                    let nuevoElemento = {};//alert(inscripcion)
-                    if (!inscripcion) {//alert('hhhh');
-                        seModificaIns = true;
-                        claveAES = desencriptakk(element.encr, clavesPrivadas[+element.yincanaId - 1]);
-                        resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, claveAES, 256));
-                        ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
-                            nuevoElemento[item] = element[item];
-                        });
-                        nuevoElemento['claveAES'] = claveAES;
-                        [ 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
-                            'Ap11', 'Ap12', 'Nombre1', 'Edad1',
-                            'Ap21', 'Ap22', 'Nombre2', 'Edad2',
-                            'Ap31', 'Ap32', 'Nombre3', 'Edad3',
-                            'Ap41', 'Ap42', 'Nombre4', 'Edad4',
-                            'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP'].forEach(item => {
-                                nuevoElemento[item] = resultado[item];
-                            })
-                        seAnnade = true;//se ha creado uno nuevo.
-                    } else if (inscripcion.updatedAt < element.updatedAt) {
-                        seModificaIns = true;
-                        nuevoElemento = inscripcion;
-                        ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
-                            nuevoElemento[item] = element[item];
-                        });
-                        //alert('se modifica el valor antiguo');
-                        if (inscripcion.valor !== element.valor) {
-                            resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, inscripcion.claveAES, 256));
-                            [ 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
-                                'Ap11', 'Ap12', 'Nombre1', 'Edad1',
-                                'Ap21', 'Ap22', 'Nombre2', 'Edad2',
-                                'Ap31', 'Ap32', 'Nombre3', 'Edad3',
-                                'Ap41', 'Ap42', 'Nombre4', 'Edad4',
-                                'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP'].forEach(item => {
-                                    nuevoElemento[item] = resultado[item];
-                                });
-                        }
 
 
-                    }
-                    //claveAES=desencriptakk(element.encr, clavesPrivadas[+element.yincanaId-1]);
-                    //resultado=JSON.parse(Aes.Ctr.decrypt(element.valor,claveAES,256));
-
-                    //alert(JSON.stringify(resultado));
-                    if (seAnnade) {
-                        inscripciones.push(nuevoElemento);
-                        aPresentar.push(nuevoElemento);
-                    } else aPresentar.push(inscripcion);
-                });
-                if (seModificaIns) localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
-                //alert(JSON.stringify(inscripciones))
-                //alert(JSON.stringify(json));
-                //alert(aPresentar);
-                document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
-                //alert(yincana+' +++ '+estado+' +++ '+diaIn+' +++ '+mesIn+' jj '+diaFin+' +++ '+mesFin+' fechas '+fechaIn+' +++ '+fechaFin);*/
             } else {
-                alert('Clave de administrador incorrecta o gymkana no disponible');
-                document.getElementById('decrip').innerHTML = 'Debe volver a poner las credenciales y recargar'
-
+                alert('Clave de administrador incorrecta o gymkana no disponible\n vuelva a poner las credenciales');
+                //document.getElementById('decrip').innerHTML = 'Debe volver a poner las credenciales y recargar'
             }
         }
-    
+
 
         const Atimestamp = (dia, mes) => {
             if (dia.trim() === '' || mes === '') {
@@ -335,12 +305,13 @@
         let NUM_SOL = 0;
         let CLAVE = ''
         DatosSolicitud = [];
+        //// se lanza la edición de una inscripción en concreto
         const muestraEditor = (id) => {
             let inscripcion = inscripciones.find(ins => ins.id === id);
             inscripcionEditada = inscripcion;
             NUM_SOL = inscripcion.nsol;
             CLAVE = inscripcion.clave;
-            html = `<div align="center"><img src="${inscripcion.yincanaId}/cabecera.svg" ></div>
+            html = `<div align="center" id="inscripcionAEditar"><img src="${inscripcion.yincanaId}/cabecera.svg" ></div>
             <hr/>
 TIPO DE EQUIPO<br/> 
   <input type="radio" name="tipo" id="primaria" value="primaria" onchange="cambioTipo();" ${'primaria' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. <b>Primaria</b> de Centro (4 alumnos de Ed. Primaria del mismo Centro Educativo)<br>
@@ -416,9 +387,10 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             //document.getElementById('decrip').style.visibility.zIndex='3';
             document.getElementById('alumno').innerHTML = html;
             PonTipos();//para que salga el select con TIPOS DE CENTROS
-            document.getElementById('tipoC').value=inscripcion.tipoC
+            document.getElementById('tipoC').value = inscripcion.tipoC
             document.getElementById('alumno').style.visibility = 'visible';
             document.getElementById('alumno').style.display = "block";
+            window.location.hash = '#inscripcionAEditar'; //nos posicionamos al principio
 
         }
 
@@ -428,6 +400,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             //document.getElementById('decrip').style.visibility.zIndex='5';
             document.getElementById('alumno').style.display = "none";
             document.getElementById('alumno').style.visibility = 'hidden';
+            window.location.hash = '#filaEd'+inscripcionEditada.id; 
         }
 
         //se pone en mayusculas el contenido
@@ -465,6 +438,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                     const json = await miFetch.json();
                     if (json.autorizado) {
                         inscripcionEditada.valor = json.inscripcion.valor;//una vez grabado lo pasamos al del local storage
+                        localStorage.setItem('inscripciones', Aes.Ctr.encrypt(JSON.stringify(inscripciones), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
                         document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
                         alert('cambios realizados');
                     } else alert('no se han hecho cambios');
@@ -506,7 +480,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
 
                     //alert(cambiada+'\n'+JSON.stringify(datosLeidos));
                     //alert(cambiada + '\n' + JSON.stringify(inscripcionEditada));
-                    let conCambios = { id: inscripcionEditada.id, nequipo:+document.getElementById('NEQUIPOED').value||null, encr:encriptakk(inscripcionEditada.claveAES,clavesPublicas[+document.getElementById('yincanaC').value-1]), yincanaId:+document.getElementById('yincanaC').value };
+                    let conCambios = { id: inscripcionEditada.id, nequipo: +document.getElementById('NEQUIPOED').value || null, encr: encriptakk(inscripcionEditada.claveAES, clavesPublicas[+document.getElementById('yincanaC').value - 1]), yincanaId: +document.getElementById('yincanaC').value };
                     if (cambiada) {
                         document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
                         conCambios.valor = Aes.Ctr.encryptFijo(JSON.stringify(datosLeidos), inscripcionEditada.claveAES, 256);
@@ -522,11 +496,18 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                     // Transforma la respuesta. En este caso lo convierte a JSON
                     const json = await miFetch.json();
                     if (json.autorizado) {
-                        if(cambiada)inscripcionEditada.valor = json.inscripcion.valor;//una vez grabado lo pasamos al del local storage
-                        let ii=aPresentar.findIndex((element) => element.id === inscripcionEditada.id)
-                        aPresentar.splice(ii,1);//quitamos la editada que ya no es de esta yincana
-                        document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
+                        if (cambiada) inscripcionEditada.valor = json.inscripcion.valor;//una vez grabado lo pasamos al del local storage
+                        //actualizamos el localStorage
+                        localStorage.setItem('inscripciones', Aes.Ctr.encrypt(JSON.stringify(inscripciones), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+                        let ii = aPresentar.findIndex((element) => element.id === inscripcionEditada.id)
+                        let InsMov=aPresentar.splice(ii, 1);//quitamos la editada que ya no es de esta yincana
+                        document.getElementById('EstadE'+inscripcionEditada.id).className = "DESPLAZADA";
+                        let elemento2=document.getElementById('EstadM'+inscripcionEditada.id);
+                        elemento2.className = "DESPLAZADA";
+                        elemento2.innerHTML = 'DESPLAZADA<br>(<b>6</b>)';
+                        //document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
                         alert('Inscripcion movida');
+                        window.location.hash = '#filaEd'+inscripcionEditada.id; 
                     }
                 }
             }
@@ -534,214 +515,220 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
 
         /////////para generar el CSV
         function arrayObjToCsv(ar, camp) {
-        let campos=[];
-        //si no se pasan los nombres de las filas a descargar se toman todas las del array.
-        if(camp) campos=camp;
-        else {
-            for (i in ar[0]) campos.push(i);
-        }
-		//comprobamos compatibilidad
-		if(window.Blob && (window.URL || window.webkitURL)){
-			var contenido = "",
-				d = new Date(),
-				blob,
-				reader,
-				save,
-				clicEvent;
-			//creamos contenido del archivo
-            //['id','nequipo','nsol',	'clave','tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro', 'Ap11', 'Ap12', 'Nombre1', 'Edad1', 'Ap21', 'Ap22', 'Nombre2', 'Edad2', 'Ap31', 'Ap32', 'Nombre3', 'Edad3', 'Ap41', 'Ap42', 'Nombre4', 'Edad4', 'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP','solicitada', 'recibida']
-            contenido=campos.join(';')+'\n';
-            ar.forEach(fila=>{
-                campos.forEach(campo=>{
-                    contenido+=fila[campo];
-                    if(campo!=='recibida')contenido+=';';
+            let campos = [];
+            //si no se pasan los nombres de las filas a descargar se toman todas las del array.
+            if (camp) campos = camp;
+            else {
+                for (i in ar[0]) campos.push(i);
+            }
+            //comprobamos compatibilidad
+            if (window.Blob && (window.URL || window.webkitURL)) {
+                var contenido = "",
+                    d = new Date(),
+                    blob,
+                    reader,
+                    save,
+                    clicEvent;
+                //creamos contenido del archivo
+                //['id','nequipo','nsol',	'clave','tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro', 'Ap11', 'Ap12', 'Nombre1', 'Edad1', 'Ap21', 'Ap22', 'Nombre2', 'Edad2', 'Ap31', 'Ap32', 'Nombre3', 'Edad3', 'Ap41', 'Ap42', 'Nombre4', 'Edad4', 'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP','solicitada', 'recibida']
+                contenido = campos.join(';') + '\n';
+                ar.forEach(fila => {
+                    campos.forEach(campo => {
+                        contenido += fila[campo];
+                        if (campo !== 'recibida') contenido += ';';
+                    });
+                    contenido += '\n';
                 });
-                contenido+='\n';
-            });
-            //alert(contenido);
-			//creamos el blob
-			blob =  new Blob(["\ufeff", contenido], {type: 'text/csv'});
-			//creamos el reader
-			var reader = new FileReader();
-			reader.onload = function (event) {
-				//escuchamos su evento load y creamos un enlace en dom
-				save = document.createElement('a');
-				save.href = event.target.result;
-				save.target = '_blank';
-				//aquí le damos nombre al archivo
-				//save.download = "log_"+ d.getDate() + "_" + (d.getMonth()+1) + "_" + d.getFullYear() +".csv";
-				//document.getElementById('BDATOS').value
-				save.download = yincanas[+document.getElementById('localidad').value].utilidad+'-'+ d.getDate() + "_" + (d.getMonth()+1) + "_" + d.getFullYear() +".csv";
-				try {
-					//creamos un evento click
-					clicEvent = new MouseEvent('click', {
-						'view': window,
-						'bubbles': true,
-						'cancelable': true
-					});
-				} catch (e) {
-					//si llega aquí es que probablemente implemente la forma antigua de crear un enlace
-					clicEvent = document.createEvent("MouseEvent");
-					clicEvent.initEvent('click', true, true);
-				}
-				//disparamos el evento
-				save.dispatchEvent(clicEvent);
-				//liberamos el objeto window.URL
-				(window.URL || window.webkitURL).revokeObjectURL(save.href);
-			}
-			//leemos como url
-			reader.readAsDataURL(blob);
-		}else {
-			//el navegador no admite esta opción
-			alert("Su navegador no permite esta acción");
-		}
-	};
-
-    
-const BuscaDuplicados=()=>{
-	let Duplicados=[]
-    let ListaParticipantes=[];
-    aPresentar.forEach((inscripcion, i)=>{//hacemos una lista de nombres ids y posiciones
-        let lista={pos:i, id: inscripcion.id, participantes:[]};
-        lista.participantes.push(`${inscripcion.Ap11} ${inscripcion.Ap12}, ${inscripcion.Nombre1}`);
-        lista.participantes.push(`${inscripcion.Ap21} ${inscripcion.Ap22}, ${inscripcion.Nombre2}`);
-        lista.participantes.push(`${inscripcion.Ap31} ${inscripcion.Ap32}, ${inscripcion.Nombre3}`);
-        lista.participantes.push(`${inscripcion.Ap41} ${inscripcion.Ap42}, ${inscripcion.Nombre4}`);
-        ListaParticipantes.push(lista);
-    });
-    ListaParticipantes.forEach((fila,i)=>{
-        ListaParticipantes.forEach((col,j)=>{
-            if(j<i){
-                //no hacemos nada
-            }else if(i===j){//comparamos los de cada inscripcion
-                for (let k=0;k<fila.participantes.length;k++){
-                   for(let kk=k+1;kk<fila.participantes.length;kk++){
-                        if(fila.participantes[k]===col.participantes[kk])Duplicados.push({pos1:i+1, id1:fila.id, alumno1:'ALUMNO'+(k+1), pos2:j+1, id2:col.id, alumno2:'ALUMNO'+(kk+1), nombre: fila.participantes[k]})
-                   } 
+                //alert(contenido);
+                //creamos el blob
+                blob = new Blob(["\ufeff", contenido], { type: 'text/csv' });
+                //creamos el reader
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    //escuchamos su evento load y creamos un enlace en dom
+                    save = document.createElement('a');
+                    save.href = event.target.result;
+                    save.target = '_blank';
+                    //aquí le damos nombre al archivo
+                    //save.download = "log_"+ d.getDate() + "_" + (d.getMonth()+1) + "_" + d.getFullYear() +".csv";
+                    //document.getElementById('BDATOS').value
+                    save.download = yincanas[+document.getElementById('localidad').value].utilidad + '-' + d.getDate() + "_" + (d.getMonth() + 1) + "_" + d.getFullYear() + ".csv";
+                    try {
+                        //creamos un evento click
+                        clicEvent = new MouseEvent('click', {
+                            'view': window,
+                            'bubbles': true,
+                            'cancelable': true
+                        });
+                    } catch (e) {
+                        //si llega aquí es que probablemente implemente la forma antigua de crear un enlace
+                        clicEvent = document.createEvent("MouseEvent");
+                        clicEvent.initEvent('click', true, true);
+                    }
+                    //disparamos el evento
+                    save.dispatchEvent(clicEvent);
+                    //liberamos el objeto window.URL
+                    (window.URL || window.webkitURL).revokeObjectURL(save.href);
                 }
-            }else{//comparamos los de una inscrcion con otras inscripciones
-                for (let k=0;k<fila.participantes.length;k++){
-                   for(let kk=0;kk<fila.participantes.length;kk++){
-                        if(fila.participantes[k]===col.participantes[kk])Duplicados.push({pos1:i+1, id1:fila.id, alumno1:'ALUMNO'+(k+1), pos2:j+1, id2:col.id, alumno2:'ALUMNO'+(kk+1), nombre: fila.participantes[k]})
-                   } 
+                //leemos como url
+                reader.readAsDataURL(blob);
+            } else {
+                //el navegador no admite esta opción
+                alert("Su navegador no permite esta acción");
+            }
+        };
+
+
+        const BuscaDuplicados = () => {
+            let Duplicados = []
+            let ListaParticipantes = [];
+            aPresentar.forEach((inscripcion, i) => {//hacemos una lista de nombres ids y posiciones
+                let lista = { pos: i, id: inscripcion.id, participantes: [] };
+                lista.participantes.push(`${inscripcion.Ap11} ${inscripcion.Ap12}, ${inscripcion.Nombre1}`);
+                lista.participantes.push(`${inscripcion.Ap21} ${inscripcion.Ap22}, ${inscripcion.Nombre2}`);
+                lista.participantes.push(`${inscripcion.Ap31} ${inscripcion.Ap32}, ${inscripcion.Nombre3}`);
+                lista.participantes.push(`${inscripcion.Ap41} ${inscripcion.Ap42}, ${inscripcion.Nombre4}`);
+                ListaParticipantes.push(lista);
+            });
+            ListaParticipantes.forEach((fila, i) => {
+                ListaParticipantes.forEach((col, j) => {
+                    if (j < i) {
+                        //no hacemos nada
+                    } else if (i === j) {//comparamos los de cada inscripcion
+                        for (let k = 0; k < fila.participantes.length; k++) {
+                            for (let kk = k + 1; kk < fila.participantes.length; kk++) {
+                                if (fila.participantes[k] === col.participantes[kk]) Duplicados.push({ pos1: i + 1, id1: fila.id, alumno1: 'ALUMNO' + (k + 1), pos2: j + 1, id2: col.id, alumno2: 'ALUMNO' + (kk + 1), nombre: fila.participantes[k] })
+                            }
+                        }
+                    } else {//comparamos los de una inscrcion con otras inscripciones
+                        for (let k = 0; k < fila.participantes.length; k++) {
+                            for (let kk = 0; kk < fila.participantes.length; kk++) {
+                                if (fila.participantes[k] === col.participantes[kk]) Duplicados.push({ pos1: i + 1, id1: fila.id, alumno1: 'ALUMNO' + (k + 1), pos2: j + 1, id2: col.id, alumno2: 'ALUMNO' + (kk + 1), nombre: fila.participantes[k] })
+                            }
+                        }
+                    }
+                });
+            });
+
+            //alert(MuestraDuplicados());
+            if (Duplicados.length == 0) {
+                alert('No hay duplicados en la lista actual.');
+            } else {
+                let listar = confirm(MuestraDuplicados(Duplicados) + '\n¿Los quieres en un archivo CSV?');
+                if (listar) {
+                    arrayObjToCsv(Duplicados);
                 }
             }
-        });
-    });
-	
-	//alert(MuestraDuplicados());
-	if(Duplicados.length==0){
-		alert('No hay duplicados en la lista actual.');
-	}else{
-        let listar=confirm(MuestraDuplicados(Duplicados)+'\n¿Los quieres en un archivo CSV?');
-		if (listar){
-            arrayObjToCsv(Duplicados);
         }
-	}
-}
-const MuestraDuplicados=(Duplicados)=>{
-	var aux='';
-	for (var i=0;i<Duplicados.length; i++){
-		for(j in Duplicados[i]){
-			aux+=j+': '+Duplicados[i][j]+'; ';
-		}
-		aux+='\r\n';
-	}
-	return aux;
-}
+        const MuestraDuplicados = (Duplicados) => {
+            var aux = '';
+            for (var i = 0; i < Duplicados.length; i++) {
+                for (j in Duplicados[i]) {
+                    aux += j + ': ' + Duplicados[i][j] + '; ';
+                }
+                aux += '\r\n';
+            }
+            return aux;
+        }
 
-///barra de progreso
-let DatosProgreso={
-    tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
-}
-const veCargando=  (/*tanda,partida,cuantas,seModificaIns,nfilas*/)=>{//alert('entramos'+tanda.length);
-    let {tanda,partida,cuantas,seModificaIns,nfilas}=DatosProgreso;
-    if(partida===0)document.getElementById('decrip').innerHTML = '';
-    //tanda.forEach((element, avanceI) => {//alert('sii');
-    let final=partida+cuantas;
-    if(DatosProgreso.nfilas<final) final=DatosProgreso.nfilas;
-    //alert(final+'-----'+DatosProgreso.nfilas)
-    for (let avanceI=partida;avanceI<final;avanceI++){
-            element=tanda[avanceI];
-                    //aPresentar.push(element.id);
-                    ////para barra de progreso                    
-                    widthPbar= Math.floor(avanceI/nfilas*100);
-                    document.getElementById('miBarra').value=widthPbar;
-		            document.getElementById('miAvance').innerHTML=widthPbar+'%';
-       
-                    let inscripcion = inscripciones.find(ins => ins.id === element.id);
-                    //alert('llll: '+JSON.stringify( inscripcion));
-                    let claveAES;
-                    let resultado;
-                    let seAnnade = false;
-                    let nuevoElemento = {};//alert(inscripcion)
-                    //alert('vamos por'+widthPbar)
-                    if (!inscripcion) {//alert('hhhh');
-                        seModificaIns = true;
-                        claveAES = desencriptakk(element.encr, clavesPrivadas[+element.yincanaId - 1]);
-                        resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, claveAES, 256));
-                        ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
-                            nuevoElemento[item] = element[item];
-                        });
-                        nuevoElemento['claveAES'] = claveAES;
-                        [ 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
+        /// realiza la carga de inscripciones de una yincana de 2 en dos hasta
+        //  completar el proceso, los parámetros se pasan en un objeto global,
+        //  ya que se lanza (y autolanza) con un setTimeOut.
+        const veCargando = (/*tanda,partida,cuantas,seModificaIns,nfilas*/) => {//alert('entramos'+tanda.length);
+            let { tanda, partida, cuantas, seModificaIns, nfilas } = DatosProgreso;
+            if (partida === 0) document.getElementById('decrip').innerHTML = '';
+            //tanda.forEach((element, avanceI) => {//alert('sii');
+            let final = partida + cuantas;
+            if (DatosProgreso.nfilas < final) final = DatosProgreso.nfilas;
+            //alert(final+'-----'+DatosProgreso.nfilas)
+            for (let avanceI = partida; avanceI < final; avanceI++) {
+                element = tanda[avanceI];
+                //aPresentar.push(element.id);
+                ////para barra de progreso                    
+                widthPbar = Math.floor(avanceI / nfilas * 100);
+                document.getElementById('miBarra').value = widthPbar;
+                document.getElementById('miAvance').innerHTML = widthPbar + '%';
+
+                let inscripcion = inscripciones.find(ins => ins.id === element.id);
+                //alert('llll: '+JSON.stringify( inscripcion));
+                let claveAES;
+                let resultado;
+                let seAnnade = false;
+                let nuevoElemento = {};//alert(inscripcion)
+                //alert('vamos por'+widthPbar)
+                if (!inscripcion) {//alert('hhhh');
+                    seModificaIns = true;
+                    claveAES = desencriptakk(element.encr, clavesPrivadas[+element.yincanaId - 1]);
+                    resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, claveAES, 256));
+                    ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
+                        nuevoElemento[item] = element[item];
+                    });
+                    nuevoElemento['claveAES'] = claveAES;
+                    ['tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
+                        'Ap11', 'Ap12', 'Nombre1', 'Edad1',
+                        'Ap21', 'Ap22', 'Nombre2', 'Edad2',
+                        'Ap31', 'Ap32', 'Nombre3', 'Edad3',
+                        'Ap41', 'Ap42', 'Nombre4', 'Edad4',
+                        'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP'].forEach(item => {
+                            nuevoElemento[item] = resultado[item];
+                        })
+                    seAnnade = true;//se ha creado uno nuevo.
+                } else if (inscripcion.updatedAt < element.updatedAt) {
+                    seModificaIns = true;
+                    nuevoElemento = inscripcion;
+                    ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
+                        nuevoElemento[item] = element[item];
+                    });
+                    //alert('se modifica el valor antiguo');
+                    if (inscripcion.valor !== element.valor) {
+                        resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, inscripcion.claveAES, 256));
+                        [, 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
                             'Ap11', 'Ap12', 'Nombre1', 'Edad1',
                             'Ap21', 'Ap22', 'Nombre2', 'Edad2',
                             'Ap31', 'Ap32', 'Nombre3', 'Edad3',
                             'Ap41', 'Ap42', 'Nombre4', 'Edad4',
                             'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP'].forEach(item => {
                                 nuevoElemento[item] = resultado[item];
-                            })
-                        seAnnade = true;//se ha creado uno nuevo.
-                    } else if (inscripcion.updatedAt < element.updatedAt) {
-                        seModificaIns = true;
-                        nuevoElemento = inscripcion;
-                        ['id', 'nequipo', 'nsol', 'clave', 'valor', 'solicitada', 'recibida', 'estado', 'yincanaId', 'updatedAt'].forEach(item => {
-                            nuevoElemento[item] = element[item];
-                        });
-                        //alert('se modifica el valor antiguo');
-                        if (inscripcion.valor !== element.valor) {
-                            resultado = JSON.parse(Aes.Ctr.decrypt(element.valor, inscripcion.claveAES, 256));
-                            [, 'tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro',
-                                'Ap11', 'Ap12', 'Nombre1', 'Edad1',
-                                'Ap21', 'Ap22', 'Nombre2', 'Edad2',
-                                'Ap31', 'Ap32', 'Nombre3', 'Edad3',
-                                'Ap41', 'Ap42', 'Nombre4', 'Edad4',
-                                'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP'].forEach(item => {
-                                    nuevoElemento[item] = resultado[item];
-                                });
-                        }
-
-
+                            });
                     }
-                    //claveAES=desencriptakk(element.encr, clavesPrivadas[+element.yincanaId-1]);
-                    //resultado=JSON.parse(Aes.Ctr.decrypt(element.valor,claveAES,256));
 
-                    //alert(JSON.stringify(resultado));
-                    if (seAnnade) {
-                        inscripciones.push(nuevoElemento);
-                        aPresentar.push(nuevoElemento);
-                    } else aPresentar.push(inscripcion);
-    }
-               // });
-                if (seModificaIns) localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
-                //alert(JSON.stringify(inscripciones))
-                //alert(JSON.stringify(json));
-                //alert(aPresentar);
-                /*DatosProgreso={
-    tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
+
+                }
+                //claveAES=desencriptakk(element.encr, clavesPrivadas[+element.yincanaId-1]);
+                //resultado=JSON.parse(Aes.Ctr.decrypt(element.valor,claveAES,256));
+
+                //alert(JSON.stringify(resultado));
+                if (seAnnade) {
+                    inscripciones.push(nuevoElemento);
+                    aPresentar.push(nuevoElemento);
+                } else aPresentar.push(inscripcion);
+            }
+            // });
+            if (seModificaIns) {
+                //localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
+                localStorage.setItem('inscripciones', Aes.Ctr.encrypt(JSON.stringify(inscripciones), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+            }
+            //alert(JSON.stringify(inscripciones))
+            //alert(JSON.stringify(json));
+            //alert(aPresentar);
+            /*DatosProgreso={
+tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
 }*/
-                DatosProgreso.partida+=DatosProgreso.cuantas;
-                DatosProgreso.seModificaIns=seModificaIns;
-                //DatosProgreso.nfilas
-                //alert(DatosProgreso.partida+'; '+nfilas);
-                if(DatosProgreso.partida>=nfilas) {
-                    document.getElementById('miBarra').value=100;
-		            document.getElementById('miAvance').innerHTML='100%';
-                    document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
-                }else setTimeout(veCargando, 1);
-}
-
+            DatosProgreso.partida += DatosProgreso.cuantas;
+            DatosProgreso.seModificaIns = seModificaIns;
+            //DatosProgreso.nfilas
+            //alert(DatosProgreso.partida+'; '+nfilas);
+            if (DatosProgreso.partida >= nfilas) {
+                document.getElementById('miBarra').value = 100;
+                document.getElementById('miAvance').innerHTML = '100%';
+                document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
+            } else setTimeout(veCargando, 1);
+        }
+        
+        const LanzaCambioLocalidad=(yincanaId)=>{
+            let opcion=confirm(`¿Seguro que quieres cambiar de yincana (${yincanaId})?`);
+            if (opcion) LanzaCargaCambioEstado();
+        }
 
     </script>
 </head>
@@ -756,7 +743,7 @@ const veCargando=  (/*tanda,partida,cuantas,seModificaIns,nfilas*/)=>{//alert('e
     </div>
     <div>
         <a name="posicionEdicion">LOCALIDAD:</a>
-        <select id="localidad" onchange="alert(this.value);//LanzaCambioLocalidad(this.value);">
+        <select id="localidad" onchange="LanzaCambioLocalidad(this.value);">
             <% for (let i=0;i<yincanas.length;i++){ %>
                 <option id="<%= yincanas[i].utilidad %>" value="<%= yincanas[i].id %>" %>
                     <% if (i===0) { %>
@@ -768,7 +755,7 @@ const veCargando=  (/*tanda,partida,cuantas,seModificaIns,nfilas*/)=>{//alert('e
         </select>
         ESTADO DE SOLICITUD:<select id="estado" onchange="document.getElementById('ESTADO').value=this.value;">
             <option value=""></option>
-            <option value="100" selected>Ni ANULADAs ni DESPLAZADAs</option>
+            <option value="100" selected>Sin ANULADAs</option>
             <option value="0">GENERADA</option>
             <option value="1">RECIBIDA</option>
             <option value="2">ADMITIDA</option>
@@ -802,19 +789,18 @@ const veCargando=  (/*tanda,partida,cuantas,seModificaIns,nfilas*/)=>{//alert('e
             onclick="localStorage.removeItem('inscripciones');alert(localStorage.getItem('inscripciones'))">
         <br>
         QUITA LA SESION: <input type="button" value="borra la sesion" onclick="quitaSesionAdmin()">
-        ORDENADO POR F. REC. <input type="checkbox" value="1"
-            onchange="document.getElementById('ORDRECV').value=this.checked">
     </div>
     <div align="center"><progress id="miBarra" max="100" value="0"></progress><span id="miAvance">0%</span></div>
     <br />
     <!--<input id="acceder" type="button" value="acceder" onclick="haHabidoEdicion=false;ocultaEditor();document.getElementById('reiframe').style.visibility='visible';document.getElementById('decrip').innerHTML='';iniciaBarra();/*cucu=setInterval(gestBarra, 1000);*/LanzaConexion();cargaOperaciones();document.getElementById('genk').submit();" />-->
     <input id="acceder" type="button" value="acceder" onclick="LanzaCargaCambioEstado();" />
-    <input id="aCSV" type="button" value="aCSV" onclick="/*AjustaSalida();*/arrayObjToCsv(aPresentar,['id','nequipo','nsol', 'clave','tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro', 'Ap11', 'Ap12', 'Nombre1', 'Edad1', 'Ap21', 'Ap22', 'Nombre2', 'Edad2', 'Ap31', 'Ap32', 'Nombre3', 'Edad3', 'Ap41', 'Ap42', 'Nombre4', 'Edad4', 'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP','solicitada', 'recibida']);" />
+    <input id="aCSV" type="button" value="aCSV"
+        onclick="/*AjustaSalida();*/arrayObjToCsv(aPresentar,['id','nequipo','nsol', 'clave','tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro', 'Ap11', 'Ap12', 'Nombre1', 'Edad1', 'Ap21', 'Ap22', 'Nombre2', 'Edad2', 'Ap31', 'Ap32', 'Nombre3', 'Edad3', 'Ap41', 'Ap42', 'Nombre4', 'Edad4', 'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP','solicitada', 'recibida']);" />
     <input id="CambiaEstadosSinRecargar" type="button" value="CambiaEstadosSinRecargar"
-        onclick="/*LanzaCargaCambioEstadoSin();*/cargaOperaciones();" />
+        onclick="cargaOperaciones();" />
     <input id="BuscaDuplicados" type="button" value="BuscaDuplicados" onclick="BuscaDuplicados();" />
     <input type="button" value="stringify Privkeys" onclick="alert(JSON.stringify(clavesPrivadas))" />
-    
+
     <iframe name="frameditar" id="frameditar" src="./edAlumnos.php" width="100%" height="0px"
         style="visibility: hidden;"></iframe>
     <div id="decrip" style="visibility: visible; z-index: 4"></div>
@@ -830,33 +816,33 @@ const veCargando=  (/*tanda,partida,cuantas,seModificaIns,nfilas*/)=>{//alert('e
 
 
     <script languaje="javascript">
-	///para leer la clava de archivos del equipo
-    function ponEvento(){
-	document.getElementById('file-input')
-  .addEventListener('change', leerArchivo, false);
- }
-function leerArchivo(e) {
-  var archivo = e.target.files[0];
-  if (!archivo) {
-    return;
-  }
-  var lector = new FileReader();
-  lector.onload = function(e) {
-    var contenido = e.target.result;
-    mostrarContenido(contenido);
-  };
-  lector.readAsText(archivo);
-}
+        ///para leer la clava de archivos del equipo
+        function ponEvento() {
+            document.getElementById('file-input')
+                .addEventListener('change', leerArchivo, false);
+        }
+        function leerArchivo(e) {
+            var archivo = e.target.files[0];
+            if (!archivo) {
+                return;
+            }
+            var lector = new FileReader();
+            lector.onload = function (e) {
+                var contenido = e.target.result;
+                mostrarContenido(contenido);
+            };
+            lector.readAsText(archivo);
+        }
 
-function mostrarContenido(contenido) {
-  //var elemento = document.getElementById('contenido-archivo');
-  var elemento = document.getElementById('cPrivada');
-  var n=contenido.length-1;
-  elemento.innerHTML = contenido.substring(0,n);
-  //lo pasamos a las claves privadas, sustituiría el de desencriptakk
-  clavesPrivadas=JSON.parse(contenido.substring(0,n))
-}
-ponEvento();
+        function mostrarContenido(contenido) {
+            //var elemento = document.getElementById('contenido-archivo');
+            var elemento = document.getElementById('cPrivada');
+            var n = contenido.length - 1;
+            elemento.innerHTML = contenido.substring(0, n);
+            //lo pasamos a las claves privadas, sustituiría el de desencriptakk
+            clavesPrivadas = JSON.parse(contenido.substring(0, n))
+        }
+        ponEvento();
     </script>
 
 </body>
