@@ -94,7 +94,7 @@
         function normalizaFecha(date) {
             if (date) {
                 let dd = new Date(date);
-                return dd.getDay() + '/' + (dd.getMonth() + 1) + '/' + dd.getFullYear() + ' ' + dd.getHours() + ':' + dd.getMinutes();
+                return dd.getDate() + '/' + (dd.getMonth() + 1) + '/' + dd.getFullYear() + ' ' + dd.getHours() + ':' + dd.getMinutes();
             } else return '';
         }
 
@@ -540,6 +540,8 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                     contenido += '\n';
                 });
                 //alert(contenido);
+                //alert(JSON.stringify(yincanas));
+                //alert(+document.getElementById('localidad').value)
                 //creamos el blob
                 blob = new Blob(["\ufeff", contenido], { type: 'text/csv' });
                 //creamos el reader
@@ -552,7 +554,9 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                     //aquí le damos nombre al archivo
                     //save.download = "log_"+ d.getDate() + "_" + (d.getMonth()+1) + "_" + d.getFullYear() +".csv";
                     //document.getElementById('BDATOS').value
-                    save.download = yincanas[+document.getElementById('localidad').value].utilidad + '-' + d.getDate() + "_" + (d.getMonth() + 1) + "_" + d.getFullYear() + ".csv";
+                    //alert(yincanas[+document.getElementById('localidad').value].utilidad + '-' + d.getDate() + "_" + (d.getMonth() + 1) + "_" + d.getFullYear() + ".csv");
+                    save.download = yincanas[+document.getElementById('localidad').value-1].utilidad + '-' + d.getDate() + "_" + (d.getMonth() + 1) + "_" + d.getFullYear() + ".csv";
+                    //alert('se pasa');
                     try {
                         //creamos un evento click
                         clicEvent = new MouseEvent('click', {

@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
                 validate: {notEmpty: {msg: "clave must not be empty"}}
             },
             encr: {
-                type: DataTypes.STRING,
+                type: DataTypes.STRING(50000),
                 validate: {notEmpty: {msg: "encr must not be empty"}}
             },
             valor: {

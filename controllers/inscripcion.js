@@ -33,7 +33,7 @@ exports.create = async (req, res, next/*, yinkanaId*/) => {
 
     const { clave, encr, valor } = req.body;
 
-    //console.log('+++++++++++++++', JSON.stringify(req.params));
+    console.log('+++++**++++++++++', JSON.stringify(req.params),'\n'+JSON.stringify(req.body));
     let yincanaId = req.params.yincanaId;
 
     // First, we start a transaction from your connection and save it into a variable

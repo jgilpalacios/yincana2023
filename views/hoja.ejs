@@ -31,7 +31,7 @@
 <script type="text/javascript" src="../js/jquery.qrcode.min.js"></script>
 
 <script type="text/javascript">
-//se lee de la base de datos de la yuncana está definida en encriptador
+//se lee de la base de datos de la yincana está definida en encriptador
 clavePub=`<%= clave_pub %>`;
 
 var NUM_SOL=0;
@@ -120,7 +120,7 @@ DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
 <p>Telefonos de contacto: <input name="TelP1" id="TelP1" maxlength="9" size="9"> / <input name="TelP2" id="TelP2" maxlength="9"  size="9"> Correo e.: <input name="EmailP" id="EmailP" onchange="NUM_SOL=0;this.value=this.value.toLowerCase().trim();"maxlength="50"  size="50"></p><hr/>
 
 <input name="Genera PDF" value="Genera PDF" type="button" onclick="if((+NUM_SOL)===0){if(validaCampos()){ 
-  dd=generaDatos();//se obtiene un objeto con los datos de la solicitud una vez grabada
+  //dd=generaDatos();//se obtiene un objeto con los datos de la solicitud una vez grabada
   //document.getElementById('pubkey').value=`${clavePub}\nAES: ${dd.AES}\nencr: ${dd.encr}\nmd5: ${dd.clave}\ndatos: ${dd.datos}\nvalor: ${dd.valor}\ndcc: ${dd.dcc}`;
   anyadirSolicitud();
   //alert('se solicitó: '+NUM_SOL+'mm');
@@ -139,7 +139,9 @@ DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
 PonTipos();///para que salgan los tipos de centros
 //clavePub=clave_pub;
 /// funcion para enviar la inscripción con ajax mediante fetch
+
 async function anyadirSolicitud() {
+    let {clave,encr,valor}=generaDatos();
     // Realiza la petición
     //const miFetch = await fetch('https://jsonplaceholder.typicode.com/users', {
     const miFetch = await fetch(getAbsolutePath()+'create.html', {
@@ -149,15 +151,16 @@ async function anyadirSolicitud() {
       method: 'POST',
       //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
       //body: JSON.stringify(dd)
-      body: JSON.stringify(generaDatos())
+      body: JSON.stringify({clave,encr,valor})//generaDatos())
     });
     // Transforma la respuesta. En este caso lo convierte a JSON
     const json = await miFetch.json();
     // Imprimo por consola
     console.log(json);
     //alert(Aes.Ctr.decrypt(json.valor,desencriptakk(json.encr),256));
-    let resultado=JSON.parse(Aes.Ctr.decrypt(json.valor,desencriptakk(json.encr, clavesPrivadas[<%= (+yincanaId-1) %>]),256));
-    alert(JSON.stringify(resultado));
+    //let resultado=JSON.parse(Aes.Ctr.decrypt(json.valor,desencriptakk(json.encr, clavesPrivadas[<%= (+yincanaId-1) %>]),256));
+    //alert(JSON.stringify(resultado));
+    alert(JSON.stringify(json));
     NUM_SOL=json.nsol;
    
     console.log('se completa');

@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
                 validate: {notEmpty: {msg: "La localidad de la yincana no debe faltar"}}
             },
             clavePublica: {
-                type: DataTypes.STRING,
+                type: DataTypes.STRING(5000),
                 validate: {notEmpty: {msg: "La clave pública de la yincana no debe faltar"}}
             }
         }, {

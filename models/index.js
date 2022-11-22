@@ -11,8 +11,8 @@ const {Sequelize, DataTypes }= require('sequelize');
 // To use  Heroku Postgres data base:
 //    DATABASE_URL = postgres://user:passwd@host:port/database
 
-const url = process.env.DATABASE_URL || "sqlite:yincana2023.sqlite";
-
+//const url = process.env.DATABASE_URL || "sqlite:yincana2023.sqlite";
+const url = process.env.DATABASE_URL || "mariadb://admin:Billalva2023@localhost:3306/yincana2023";
 const sequelize = new Sequelize(url);
 
 // Import the definition of the Inscripcion Table from inscripcion.js

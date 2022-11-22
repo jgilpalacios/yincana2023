@@ -35,7 +35,7 @@ module.exports = {
                   validate: {notEmpty: {msg: "clave must not be empty"}}
               },
               encr: {
-                  type: Sequelize.STRING,
+                  type: Sequelize.STRING(50000),
                   validate: {notEmpty: {msg: "encr must not be empty"}}
               },
               valor: {

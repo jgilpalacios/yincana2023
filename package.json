@@ -10,7 +10,9 @@
     "migrate_win": "sequelize db:migrate --url sqlite://%cd%/yincana2023.sqlite",
     "seed_win": "sequelize db:seed:all --url sqlite://%cd%/yincana2023.sqlite",
     "migrate_env": "sequelize db:migrate --url $DATABASE_URL",
-    "seed_env": "sequelize db:seed:all --url $DATABASE_URL"
+    "seed_env": "sequelize db:seed:all --url $DATABASE_URL",
+    "migrateMaria": "sequelize db:migrate --url mariadb://admin:Billalva2023@localhost:3306/yincana2023",
+    "seedMaria": "sequelize db:seed:all --url mariadb://admin:Billalva2023@localhost:3306/yincana2023"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -19,6 +21,7 @@
     "express": "~4.16.1",
     "express-session": "^1.17.3",
     "http-errors": "~1.6.3",
+    "mariadb": "^3.0.2",
     "morgan": "~1.9.1",
     "sequelize": "^6.25.3",
     "sequelize-cli": "^6.5.2",
