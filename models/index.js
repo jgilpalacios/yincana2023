@@ -11,8 +11,8 @@ const {Sequelize, DataTypes }= require('sequelize');
 // To use  Heroku Postgres data base:
 //    DATABASE_URL = postgres://user:passwd@host:port/database
 
-//const url = process.env.DATABASE_URL || "sqlite:yincana2023.sqlite";
-const url = process.env.DATABASE_URL || "mariadb://admin:Billalva2023@localhost:3306/yincana2023";
+const url = process.env.DATABASE_URL || "sqlite:yincana2023.sqlite";
+//const url = process.env.DATABASE_URL || "mariadb://admin:Billalva2023@localhost:3306/yincana2023";
 const sequelize = new Sequelize(url);
 
 // Import the definition of the Inscripcion Table from inscripcion.js
@@ -22,11 +22,16 @@ const Inscripcion = require(path.join(__dirname, 'inscripcion'))(sequelize, Data
 const Yincana = require(path.join(__dirname, 'yincana'))(sequelize, DataTypes);
 
 const His_inscripcion = require(path.join(__dirname, 'his_inscripcion'))(sequelize, DataTypes);
+
+const Rol = require(path.join(__dirname, 'rol'))(sequelize, DataTypes);
+
+
 // Relation 1-to-N between User and Quiz:
 Yincana.hasMany(Inscripcion, { as: 'inscripciones', foreignKey: 'yincanaId' });
 Inscripcion.belongsTo(Yincana, { as: 'localidad', foreignKey: 'yincanaId' });
 
 Inscripcion.hasMany(His_inscripcion, { as: 'his_inscripciones', foreignKey: 'hid' });
 His_inscripcion.belongsTo(Inscripcion, { as: 'identificador', foreignKey: 'hid' });
+
 
 module.exports = sequelize;

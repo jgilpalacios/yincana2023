@@ -1,5 +1,5 @@
 node_modules
 public/mijs/desencriptakk.js
 public/mijs/claves.tjson
-yincana2023.sqlite
+yincana2023*.sqlite
 .env

@@ -19,7 +19,11 @@ module.exports = (sequelize, DataTypes) => {
             clavePublica: {
                 type: DataTypes.STRING(5000),
                 validate: {notEmpty: {msg: "La clave pública de la yincana no debe faltar"}}
-            }
+            },
+            MD5clavePrivada: {
+                type: DataTypes.STRING,
+                validate: {notEmpty: {msg: "El MD5 de la clave privada de la yincana no debe faltar"}}
+              },
         }, {
             sequelize
         }

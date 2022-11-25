@@ -31,6 +31,10 @@ module.exports = {
             type: Sequelize.STRING(5000),
             validate: {notEmpty: {msg: "La clave pública de la yincana no debe faltar"}}
           },
+          MD5clavePrivada: {
+            type: Sequelize.STRING,
+            validate: {notEmpty: {msg: "El MD5 de la clave privada de la yincana no debe faltar"}}
+          },
           createdAt: {
             type: Sequelize.DATE,
             allowNull: false

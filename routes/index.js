@@ -30,6 +30,9 @@ router.post('/admin/modifica', inscripcionController.ponSesionUser, inscripcionC
 
 router.post('/admin/desplaza', inscripcionController.ponSesionUser, inscripcionController.adminDesplaza);
 
+router.get('/consulta', inscripcionController.lector);
+
+router.post('/consulta/get', inscripcionController.ponSesionLector, inscripcionController.lectorGet);
 
 //router.get('/quizzes/new',                 quizController.new);
 //router.post('/quizzes',                    quizController.create);

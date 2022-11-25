@@ -30,6 +30,7 @@ KqR5d2OzQgXXa6w2NM3MUEK3BGAeE+DtMBF04q+bQQQk/YQcO9mzl3N95Nt3YU2b
 TMpE9Z84beCfP+eES2BPNwimLGVXsgquer2UYhTdAiqSAKIJDkhiV+4SUdkRYb9P
 FaCZRpJZCq06XEfuI5nYLekCAwEAAQ==
 -----END PUBLIC KEY-----`,
+        MD5clavePrivada:'99d79a70c6bbd2bcfd9fe2d1541b8ad5',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -50,6 +51,7 @@ jSvlA+jJP8/12KLH8ZSChtW8nNwSAp8/zd89JMVKkrZwR/vstKIX2ijZMuiw15Kx
 +JmjS8EvU2t+VnkIeCwZ2+lhW7oCU6HjnwkbHuYltr34jncNN1KxdmmQMS2ltN+H
 TVueF21qaRCm5qZl9ImhY+ECAwEAAQ==
 -----END PUBLIC KEY-----`,
+        MD5clavePrivada:'e2314827cc0b515871a21b9468ddffd9',
         createdAt: new Date(),
         updatedAt: new Date()
       },
