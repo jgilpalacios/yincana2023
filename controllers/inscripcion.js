@@ -457,6 +457,114 @@ exports.lectorGet = async (req, res, next) => {
     }
 };
 
+exports.ponSesionAyto = async (req, res, next) => {
+    let yincanaIdAut = +req.params.yincanaId;
+    const { key_yincanas,  yincana } = req.body;
+    //let autorizado = false;//para ver si tiene autorizacion
+    try {
+        let yincanas=await models.Yincana.findAll();
+        let yinkananas_autorizadas=[];
+        yincanas.forEach(y=>{
+            if(+y.id === yincanaIdAut) yinkananas_autorizadas.push(y.MD5clavePrivada)
+        });
+        //console.log('·················',JSON.stringify(yinkananas_autorizadas))
+    /*let yinkananas_autorizadas = [
+        //'adf32eb7a85bd1806e1dbef28f244ec4',//Boadilla
+        //'44e9977d9d58beecaa11d4e46574d83a'//Collado Villalba
+        '99d79a70c6bbd2bcfd9fe2d1541b8ad5',
+        'e2314827cc0b515871a21b9468ddffd9'
+    ];*/
+    /*let rol = await models.Rol.findAll({
+        where: {
+          nombre: 'lector'
+        }
+    });
+    let clave_lector=rol[0].clave;*/
+
+    //let clave_lector = '21232f297a57a5a743894a0e4a801fc3';//md5(admin);
+    //console.log(key_yincanas, '\n', yinkananas_autorizadas[0], '\n', yinkananas_autorizadas[1], '\n', yincana - 1, '\n',
+    //   req.session.admin, '\n', key_admin)
+    if (req.session.ayto) {
+        console.log('+++++++++++', 'se entra')
+        if(key_yincanas[0]===yinkananas_autorizadas[0]) next();
+        else {
+            delete req.session.ayto;
+            res.send({ autorizado: false });
+        }//next();
+    } else {
+        const { key_yincanas, yincana } = req.body;
+        if (!key_yincanas || !yincana) {
+            console.log('-------', 'se entra')
+            delete req.session.ayto;
+            res.send({ autorizado: false });
+        } else {
+            console.log('************* ', key_yincanas, yincana);
+            if (key_yincanas[yincana - 1] === yinkananas_autorizadas[yincana - 1]) {
+                console.log('++++++++++++ ', yinkananas_autorizadas);
+                req.session.ayto = {rol:'ayto', yincanaId:yincana};
+                next();
+            } else {
+                res.send({ autorizado: false });
+            }
+        }
+
+    }
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
+exports.ayto = async (req, res, next) => {
+    try {
+        let yincanas = await models.Yincana.findAll({
+            where: {
+                id: +req.params.yincanaId
+              }
+            });
+        //console.log('+++++++++++++++++', JSON.stringify(yincanas))
+        res.render('ayto', { yincanas });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.aytoGet = async (req, res, next) => {
+    const { yincana, estado, fechaIn, fechaFin } = req.body;
+    
+    try {
+        let condicionesBusqueda = [{ yincanaId: yincana }];
+        if (estado !== '' && +estado < 5) {
+            condicionesBusqueda.push({ estado: estado });
+        } else {
+            if (+estado === 100) {
+                condicionesBusqueda.push({ estado: { [Op.lt]: 4 } });
+            } else if (+estado === 12) {
+                condicionesBusqueda.push({ [Op.or]: [{ estado: 1 }, { estado: 2 }, { estado: 3 }] });
+            } else{//para Aytos se muestran solo admitidas y lista de espera
+                condicionesBusqueda.push({ [Op.or]: [{ estado: 2 }, { estado: 3 }] });
+            }
+        }
+        if (fechaIn !== '') {
+            condicionesBusqueda.push({ solicitada: { [Op.gte]: fechaIn } });
+        }
+        if (fechaFin !== '') {
+            condicionesBusqueda.push({ solicitada: { [Op.lte]: fechaFin } });
+        }
+        let findOptions = {};
+        findOptions.where = { [Op.and]: condicionesBusqueda }
+
+        let inscripciones = await models.Inscripcion.findAll(findOptions);
+        //console.log('+++++++++',JSON.stringify(condicionesBusqueda));
+        //let yincanas = await models.Yincana.findAll();
+        //console.log('+++++++++++++++++', JSON.stringify(yincanas))
+        //res.render('admin', { yincanas });
+        res.send(JSON.stringify({ inscripciones, autorizado: true }));
+    } catch (error) {
+        console.log(error);
+    }
+};
+
 
 /*const paginate = require('../helpers/paginate').paginate;
 

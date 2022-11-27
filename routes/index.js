@@ -34,6 +34,11 @@ router.get('/consulta', inscripcionController.lector);
 
 router.post('/consulta/get', inscripcionController.ponSesionLector, inscripcionController.lectorGet);
 
+router.get('/:yincanaId(\\d+)/ayto', inscripcionController.ayto);
+
+router.post('/:yincanaId(\\d+)/ayto/get', inscripcionController.ponSesionAyto,inscripcionController.aytoGet);
+
+
 //router.get('/quizzes/new',                 quizController.new);
 //router.post('/quizzes',                    quizController.create);
 

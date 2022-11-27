@@ -18,7 +18,6 @@ module.exports = (sequelize, DataTypes) => {
         }, {
             sequelize,
             tableName: 'Roles' //para poder indicar el plural para nombre de tabla
-
         }
     );
 
