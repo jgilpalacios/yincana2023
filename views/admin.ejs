@@ -4,7 +4,11 @@
 
 <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>ADMINISTRACIÓN</title>
+    <title><% if (rol==='admin'){ %> ADMINISTRACIÓN
+           <% } else if(rol==='lector'){ %> CONSULTA
+           <% } else if(rol==='ayto'){ %> Ayto. <%= yincanas[0].utilidad %>
+           <% } %>
+    </title>
     <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon" />
     <meta http-equiv="content-language" content="es" />
     <link rel="stylesheet" href="../css/miestilo.css">
@@ -59,7 +63,13 @@
          */
 
         let inscripciones = [];
+        <% if (rol==='admin'){ %>
         if (localStorage.getItem('inscripciones')) inscripciones = JSON.parse(Aes.Ctr.decrypt(localStorage.getItem('inscripciones'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+        <% } else if(rol==='lector'){ %>
+        if (localStorage.getItem('inscripcionesLector')) inscripciones = JSON.parse(Aes.Ctr.decrypt(localStorage.getItem('inscripcionesLector'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+        <% } else if(rol==='ayto'){ %>
+        if (localStorage.getItem('inscripcionesAyto')) inscripciones = JSON.parse(Aes.Ctr.decrypt(localStorage.getItem('inscripcionesAyto'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+        <% } %>
         let aPresentar = [];
         ///barra de progreso
         let DatosProgreso = {
@@ -100,7 +110,8 @@
                 return dd.getDate() + '/' + (dd.getMonth() + 1) + '/' + dd.getFullYear() + ' ' + dd.getHours() + ':' + dd.getMinutes();
             } else return '';
         }
-
+        
+<% if (rol==='admin'){ %>
         ///para realizar las actualizaciones de estado, o numero de equipo
         //en Base de Datos
         const cargaOperaciones = async () => {
@@ -142,7 +153,7 @@
             }
 
         }
-
+<% } %>
         ///para realizar ordenaciones en el listado.
         const OrdLocal = (criterio) => { //alert('se emtra');
             //alert (criterio);
@@ -176,7 +187,7 @@
             }
         }
 
-
+<% if (rol==='admin'){ %>
         // Para registrar cada operación de cambio de estado o número de equipo,
         //luego se lanza el proceso que lleva a cabo todas en la Base de datos
         //con: cargaOperaciones
@@ -189,10 +200,10 @@
             operacionesPendientes = true;
             //alert(op+'registrado'+objeto+';'+JSON.stringify(totalOperaciones));
         }
-
+<% } %>
         //crea el html de las inscripciones aPresentar
         const CreaTablaInscripciones = (seleccion) => {
-            let cabecera = `<tr><th>ACCIÓN</th><th>ID</th><th class="ordenable" onclick="OrdLocal('NEQUIPO')">NºEQUIPO</th><th class="ordenable" onclick="OrdLocal('NSOL')">NSOL</th><th>CLAVE</th><th class="ordenable" onclick="OrdLocal('TIPO')">TIPO</th><th class="ordenable" onclick="OrdLocal('CODCENTRO')">CENTRO</th><th>ALUMNOS</th><th class="ordenable" onclick="OrdLocal('RESPONSABLE')">RESPONSABLE</th><th class="ordenable" onclick="OrdLocal('SOLICITADA')">SOLICITADA</th><th class="ordenable" onclick="OrdLocal('RECIBIDA')">RECIBIDA</th><th class="ordenable" onclick="OrdLocal('ESTADO')">ESTADO</th></tr>`;
+            let cabecera = `<tr><% if (rol==='admin'){ %><th>ACCIÓN</th><%  } %><th>ID</th><th class="ordenable" onclick="OrdLocal('NEQUIPO')">NºEQUIPO</th><th class="ordenable" onclick="OrdLocal('NSOL')">NSOL</th><th>CLAVE</th><th class="ordenable" onclick="OrdLocal('TIPO')">TIPO</th><th class="ordenable" onclick="OrdLocal('CODCENTRO')">CENTRO</th><th>ALUMNOS</th><th class="ordenable" onclick="OrdLocal('RESPONSABLE')">RESPONSABLE</th><th class="ordenable" onclick="OrdLocal('SOLICITADA')">SOLICITADA</th><th class="ordenable" onclick="OrdLocal('RECIBIDA')">RECIBIDA</th><th class="ordenable" onclick="OrdLocal('ESTADO')">ESTADO</th></tr>`;
             let cuerpo = '';
             //alert('seEntra ' + JSON.stringify(seleccion))
             seleccion.forEach(caso => {//alert(id);
@@ -206,7 +217,7 @@
                     case 3: accion = 'LESPERA'; break;
                     case 4: accion = 'ANULADA'; break;
                 };//alert(id+accion);
-                let cuerpoAdd = `<td class="${accion}" id="EstadE${id}"><select onchange="registraOperacion(this.value);"><option value="ESTADO,${id}, -1" selected="selected"></option><option value="ESTADO,${id}, 0">GENERADA</option><option value="ESTADO,${id},1">RECIBIDA</option><option value="ESTADO,${id},2">ADMITIDA</option><option value="ESTADO,${id}, 3">L. ESPERA</option><option value="ESTADO,${id}, 4">ANULADA</option></select></td><td>${id}</td><td><input type="text" name="pin${id}" id="pin${id}" maxlength="3" size="3" onchange=";registraOperacion('NEQUIPO,${id}, '+this.value+'')" value="${inscripcion.nequipo || ''}"></td><td>${inscripcion.nsol}</td>
+                let cuerpoAdd = `<% if (rol==='admin'){ %><td class="${accion}" id="EstadE${id}"><select onchange="registraOperacion(this.value);"><option value="ESTADO,${id}, -1" selected="selected"></option><option value="ESTADO,${id}, 0">GENERADA</option><option value="ESTADO,${id},1">RECIBIDA</option><option value="ESTADO,${id},2">ADMITIDA</option><option value="ESTADO,${id}, 3">L. ESPERA</option><option value="ESTADO,${id}, 4">ANULADA</option></select></td><% } %><td>${id}</td><td><input type="text" name="pin${id}" id="pin${id}" maxlength="3" size="3" onchange=";registraOperacion('NEQUIPO,${id}, '+this.value+'')" value="${inscripcion.nequipo || ''}"></td><td>${inscripcion.nsol}</td>
             <td>${inscripcion.clave.substring(0, 8)}<br>${inscripcion.clave.substring(8, 16)}<br>${inscripcion.clave.substring(16, 24)}<br>${inscripcion.clave.substring(24)}</td><td class="${inscripcion.tipo}">${inscripcion.tipo.substring(0, 1).toUpperCase()}</td>
                     <td>${inscripcion.cod_centro}<br> ${inscripcion.tipoC + ' ' + inscripcion.nombre_centro}<br>(${inscripcion.loc_centro})</td><td onclick="muestraEditor(${id});" class="editable"><a name="filaEd${id}"><table><tbody>
                     <tr><td>${inscripcion.Ap11} ${inscripcion.Ap12}, ${inscripcion.Nombre1} ( ${inscripcion.Edad1 || ''})</td></tr>
@@ -241,11 +252,21 @@
 
             //para gestionar la autenticacion:
             let key_yincanas = [];
+            <% if (rol==='ayto'){ %>
+            clavesPrivadas.forEach((yi,i) => {
+                if(+yincana-1===i)key_yincanas.push(calcMD5(yi))
+            })
+            <% } else { %>
             clavesPrivadas.forEach(yi => {
                 key_yincanas.push(calcMD5(yi))
             })
+            <% } %>
             //alert(key_yincanas);
+            <% if (rol==='admin'){ %>
             let key_admin = calcMD5(document.getElementById('CAdmin').value);
+            <% } else if (rol==='lector'){ %>
+            let key_lector = calcMD5(document.getElementById('CAdmin').value);
+            <% } %>
             //alert(key_admin);
 
             //alert(getAbsolutePath());
@@ -255,7 +276,13 @@
                 },
                 method: 'POST',
                 //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
+                <% if (rol==='admin'){ %>
                 body: JSON.stringify({ key_yincanas, key_admin, yincana, estado, fechaIn, fechaFin })
+                <% } else if (rol==='lector'){ %>
+                body: JSON.stringify({ key_yincanas, key_lector, yincana, estado, fechaIn, fechaFin })
+                <% } else if (rol==='ayto'){ %>
+                body: JSON.stringify({ key_yincanas, yincana, estado, fechaIn, fechaFin })    
+                <% } %>
             });
             // Transforma la respuesta. En este caso lo convierte a JSON
             const json = await miFetch.json();
@@ -314,18 +341,18 @@
             inscripcionEditada = inscripcion;
             NUM_SOL = inscripcion.nsol;
             CLAVE = inscripcion.clave;
-            html = `<div align="center" id="inscripcionAEditar"><img src="${inscripcion.yincanaId}/cabecera.svg" ></div>
+            html = `<div align="center" id="inscripcionAEditar"><img src="<% if (rol!=='ayto'){ %>${inscripcion.yincanaId}/<% } %>cabecera.svg" ></div>
             <hr/>
 TIPO DE EQUIPO<br/> 
-  <input type="radio" name="tipo" id="primaria" value="primaria" onchange="cambioTipo();" ${'primaria' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. <b>Primaria</b> de Centro (4 alumnos de Ed. Primaria del mismo Centro Educativo)<br>
-  <input type="radio" name="tipo" id="secundaria" value="secundaria" onchange="cambioTipo();" ${'secundaria' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. <b>Secundaria</b> de Centro (4 alumnos de Ed. Secundaria del mismo Centro Educativo )<br/>
-  <input type="radio" name="tipo" id="adultos" value="adultos" onchange="cambioTipo();" ${'adultos' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. para <b>Adultos</b> de Centro (4 alumnos de Ed. para Adultos del mismo Centro Educativo )<br/>
+  <input type="radio" name="tipo" id="primaria" value="primaria" onchange="cambioTipo();" ${'primaria' === inscripcion.tipo ? 'checked' : ''} <% if (rol!=='admin'){ %>disabled="disabled"<% } %>> Equipo de Ed. <b>Primaria</b> de Centro (4 alumnos de Ed. Primaria del mismo Centro Educativo)<br>
+  <input type="radio" name="tipo" id="secundaria" value="secundaria" onchange="cambioTipo();" ${'secundaria' === inscripcion.tipo ? 'checked' : ''} <% if (rol!=='admin'){ %>disabled="disabled"<% } %>> Equipo de Ed. <b>Secundaria</b> de Centro (4 alumnos de Ed. Secundaria del mismo Centro Educativo )<br/>
+  <!--<input type="radio" name="tipo" id="adultos" value="adultos" onchange="cambioTipo();" ${'adultos' === inscripcion.tipo ? 'checked' : ''}> Equipo de Ed. para <b>Adultos</b> de Centro (4 alumnos de Ed. para Adultos del mismo Centro Educativo )<br/>-->
 Tipo:<!--<input name="tipoC" id="tipoC" onchange="seActualiza(this);" maxlength="10" size="10" value="${inscripcion.tipoC}" >-->
-<select name="tipoC" id="tipoC" value="${inscripcion.tipoC}" onchange="document.getElementById('cod_centro').value=''; Candidatos()">
+<select name="tipoC" id="tipoC" value="${inscripcion.tipoC}" onchange="document.getElementById('cod_centro').value=''; Candidatos()" <% if (rol!=='admin'){ %>disabled="disabled"<% } %>>
             </select>
-Nombre del Centro: <input name="nombre_centro" id="nombre_centro" onkeyup="document.getElementById('cod_centro').value='';this.value=this.value.toUpperCase();Candidatos()" maxlength="50" size="50" value="${inscripcion.nombre_centro}" >
-CÓDIGO: <input name="cod_centro" id="cod_centro" maxlength="8" size="8" onchange="Candidatos()" value="${inscripcion.cod_centro}"><a href="https://gestiona.comunidad.madrid/wpad_pub/run/j/MostrarConsultaGeneral.icm?tipoCurso=ADM&sinboton=S" target="_BLANK" title="Buscador de Centros Comunidad de Madrdid"><img src="../img/find.png" align="middle"></a>  
-Localidad: <input name="loc_centro" id="loc_centro" onkeyup="document.getElementById('cod_centro').value='';this.value=this.value.toUpperCase();Candidatos()" maxlength="30" size="30" value="${inscripcion.loc_centro}"><br>
+Nombre del Centro: <input name="nombre_centro" id="nombre_centro" onkeyup="document.getElementById('cod_centro').value='';this.value=this.value.toUpperCase();Candidatos()" maxlength="50" size="50" value="${inscripcion.nombre_centro}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>>
+CÓDIGO: <input name="cod_centro" id="cod_centro" maxlength="8" size="8" onchange="Candidatos()" value="${inscripcion.cod_centro}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>><a href="https://gestiona.comunidad.madrid/wpad_pub/run/j/MostrarConsultaGeneral.icm?tipoCurso=ADM&sinboton=S" target="_BLANK" title="Buscador de Centros Comunidad de Madrdid"><img src="../img/find.png" align="middle"></a>  
+Localidad: <input name="loc_centro" id="loc_centro" onkeyup="document.getElementById('cod_centro').value='';this.value=this.value.toUpperCase();Candidatos()" maxlength="30" size="30" value="${inscripcion.loc_centro}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>><br>
 <span id="centros"></span><hr/>
 DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
  <table style="width:100%">
@@ -338,39 +365,40 @@ DATOS DE LOS COMPONENTES DEL EQUIPO<hr/>
   </tr>
   <tr>
     <td>1</td>
-    <td><input name="Ap11" id="Ap11" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap11}"></td>
-    <td><input name="Ap12" id="Ap12" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap12 || ''}"></td>
-    <td><input name="Nombre1" id="Nombre1" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre1}"></td>
-    <td><input name="Edad1" id="Edad1" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad1 || ''}"></td>
+    <td><input name="Ap11" id="Ap11" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap11}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Ap12" id="Ap12" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap12 || ''}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Nombre1" id="Nombre1" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre1}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Edad1" id="Edad1" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad1 || ''}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
   </tr>
   <tr>
     <td>2</td>
-    <td><input name="Ap21" id="Ap21" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap21}"></td>
-    <td><input name="Ap22" id="Ap22" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap22 || ''}"></td>
-    <td><input name="Nombre2" id="Nombre2" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre2}"></td>
-    <td><input name="Edad2" id="Edad2" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad2 || ''}"></td>
+    <td><input name="Ap21" id="Ap21" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap21}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Ap22" id="Ap22" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap22 || ''}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Nombre2" id="Nombre2" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre2}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Edad2" id="Edad2" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad2 || ''}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
   </tr>
   <tr>
     <td>3</td>
-    <td><input name="Ap31" id="Ap31" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap31}"></td>
-    <td><input name="Ap32" id="Ap32" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap32 || ''}"></td>
-    <td><input name="Nombre3" id="Nombre3" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre3}"></td>
-    <td><input name="Edad3" id="Edad3" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad3 || ''}"></td>
+    <td><input name="Ap31" id="Ap31" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap31}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Ap32" id="Ap32" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap32 || ''}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Nombre3" id="Nombre3" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre3}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Edad3" id="Edad3" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad3 || ''}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
    </tr>
   <tr>
     <td>4</td>
-    <td><input name="Ap41" id="Ap41" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap41}"></td>
-    <td><input name="Ap42" id="Ap42" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap42 || ''}"></td>
-    <td><input name="Nombre4" id="Nombre4" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre4}"></td>
-    <td><input name="Edad4" id="Edad4" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad4 || ''}"></td>
+    <td><input name="Ap41" id="Ap41" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap41}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Ap42" id="Ap42" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Ap42 || ''}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Nombre4" id="Nombre4" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.Nombre4}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
+    <td><input name="Edad4" id="Edad4" maxlength="2" size="2" onchange="seActualiza(this);" value="${+inscripcion.Edad4 || ''}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></td>
   </tr>
 </table>
 <p>PERSONA DE CONTACTO: <p/>
-<p>Primer apellido: <input name="ApP1" id="ApP1" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.ApP1}">
-Segundo apellido: <input name="ApP2" id="ApP2" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.ApP2 || ''}">
-Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.NomP}"></p>  
-<p>Telefonos de contacto: <input name="TelP1" id="TelP1" maxlength="9" size="9" onchange="seActualiza(this);" value="${inscripcion.TelP1}"> / <input name="TelP2" id="TelP2" maxlength="9"  size="9" onchange="seActualiza(this);"  value="${inscripcion.Telp2 || ''}"> Correo e.: <input name="EmailP" id="EmailP" onchange="seActualizaCorreo(this);" maxlength="50"  size="50"  value="${inscripcion.EmailP}"></p><hr/>
+<p>Primer apellido: <input name="ApP1" id="ApP1" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.ApP1}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>>
+Segundo apellido: <input name="ApP2" id="ApP2" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.ApP2 || ''}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>>
+Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20" size="20" value="${inscripcion.NomP}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></p>  
+<p>Telefonos de contacto: <input name="TelP1" id="TelP1" maxlength="9" size="9" onchange="seActualiza(this);" value="${inscripcion.TelP1}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>> / <input name="TelP2" id="TelP2" maxlength="9"  size="9" onchange="seActualiza(this);"  value="${inscripcion.Telp2 || ''}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>> Correo e.: <input name="EmailP" id="EmailP" onchange="seActualizaCorreo(this);" maxlength="50"  size="50"  value="${inscripcion.EmailP}" <% if (rol!=='admin'){ %>readonly="readonly"<% } %>></p><hr/>
 <br><br>
+<% if (rol==='admin'){ %>
 <input name="ACTUALIZAR DATOS DE LA FICHA" value="ACTUALIZAR DATOS DE LA FICHA" type="button" onclick="LanzaLaActualizacion()">
 <input name="CANCELAR" value="CANCELAR" type="button" onclick="ocultaEditor()">
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="CreaCopiaSolicitud" value="CreaCopiaSolicitud" type="button" onclick="CreaCopiaSol();">
@@ -383,7 +411,11 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
 </select> 
 &nbsp;Con nº de Equipo:<input type="text" name="NEQUIPOED" id="NEQUIPOED" maxlength="3" size="3" onchange="PonNEquipo(this);" value="0">
 <input name="DESPLAZA" value="DESPLAZA" type="button" onclick="mueveEquipo();">
-</p><br>`;
+</p><br>
+<% } else { %>
+<input name="VOLVER" value="VOLVER" type="button" onclick="ocultaEditor()">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="CreaCopiaSolicitud" value="CreaCopiaSolicitud" type="button" onclick="CreaCopiaSol();">
+<% } %>`;
 
             document.getElementById('decrip').style.visibility = 'hidden';
             document.getElementById('decrip').style.display = "none"
@@ -406,6 +438,8 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             window.location.hash = '#filaEd'+inscripcionEditada.id; 
         }
 
+
+<% if (rol==='admin'){ %>
         //se pone en mayusculas el contenido
         const seActualiza = (campo) => {
             campo.value = campo.value.toUpperCase();
@@ -449,8 +483,15 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             }
         }
 
+<% } %>
         const CreaCopiaSol = () => {
+            <% if (rol==='admin'){ %>
             let aux = getAbsolutePath().split('admin');
+            <% } else if (rol==='lector'){ %>
+            let aux = getAbsolutePath().split('consulta');
+            <% } else if (rol==='ayto'){ %>
+                let aux = getAbsolutePath().split(inscripcionEditada.yincanaId+'/ayto');
+            <% } %>
             let urlComprobar = aux[0] + inscripcionEditada.yincanaId + `/comprueba?contador=${NUM_SOL}&clave=${CLAVE}`;
             alert(urlComprobar);
             //ponQR(urlComprobar);/*resultadoBD*/DatosSolicitud = tomaQR(urlComprobar, NUM_SOL, CLAVE);//NUM_SOL=DatosSolicitud[2];/*window.top.window.A(resultadoBD)*/;
@@ -463,6 +504,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             //generaPDF('../'+inscripcionEditada.yincanaId+'/LogoGymk18.jpg');
         }
 
+<% if (rol==='admin'){ %>
         const mueveEquipo = async () => {
             if (document.getElementById('yincanaC').value === '#') {
                 alert('Se debe selecciona una localidad')
@@ -516,6 +558,7 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             }
         }
 
+<% } %>
         /////////para generar el CSV
         function arrayObjToCsv(ar, camp) {
             let campos = [];
@@ -713,7 +756,14 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
             // });
             if (seModificaIns) {
                 //localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
-                localStorage.setItem('inscripciones', Aes.Ctr.encrypt(JSON.stringify(inscripciones), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+                //localStorage.setItem('inscripciones', Aes.Ctr.encrypt(JSON.stringify(inscripciones), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+                <% if (rol==='admin'){ %>
+                    localStorage.setItem('inscripciones', Aes.Ctr.encrypt(JSON.stringify(inscripciones), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+                <% } else if(rol==='lector'){ %>
+                    localStorage.setItem('inscripcionesLector', Aes.Ctr.encrypt(JSON.stringify(inscripciones), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+                <% } else if(rol==='ayto'){ %>
+                    localStorage.setItem('inscripcionesAyto', Aes.Ctr.encrypt(JSON.stringify(inscripciones), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+                <% } %>
             }
             //alert(JSON.stringify(inscripciones))
             //alert(JSON.stringify(json));
@@ -731,7 +781,9 @@ tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
                 document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
             } else setTimeout(veCargando, 1);
         }
-        
+ 
+
+<% if (rol==='admin'||rol==='lector'){ %>     
         const LanzaCambioLocalidad=(yincanaId)=>{
             let opcion=confirm(`¿Seguro que quieres cambiar de yincana (${yincanaId})?`);
             if (opcion){
@@ -741,16 +793,18 @@ tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
                 document.getElementById('localidad').value=''+localidad
             }
         }
-
+<% } %>
     </script>
 </head>
 
 <body>
     <div style="display: inline;"><textarea id="cPrivada" name="input" type="text" rows=4
             cols=70>Aquí se pone la clave privada</textarea>
-        <input type="file" id="file-input" /> ++CLAVE ADMINISTRADOR: <input type="password" id="CAdmin" onmouseover="this.type='text'" onmouseout="this.type='password'">
-        <!--<h3>Contenido del archivo:</h3>
-<pre id="contenido-archivo"></pre>-->
+        <input type="file" id="file-input" />
+        <% if (rol==='admin'){ %> ++CLAVE ADMINISTRADOR: <input type="password" id="CAdmin" onmouseover="this.type='text'" onmouseout="this.type='password'">
+           <% } else if(rol==='lector'){ %> ++CLAVE LECTOR: <input type="password" id="CAdmin" onmouseover="this.type='text'" onmouseout="this.type='password'">
+           <% } else if(rol==='ayto'){ %>
+           <% } %>
 
     </div>
     <div>
@@ -765,7 +819,12 @@ tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
                 <% } %>
 
         </select>
-        ESTADO DE SOLICITUD:<select id="estado" onchange="document.getElementById('ESTADO').value=this.value;">
+        ESTADO DE SOLICITUD:<select id="estado" >
+            <% if(rol==='ayto'){ %>
+            <option value=""></option>
+            <option value="2">ADMITIDA</option>
+            <option value="3">L. ESPERA</option>
+            <% } else { %>
             <option value=""></option>
             <option value="100" selected>Sin ANULADAs</option>
             <option value="0">GENERADA</option>
@@ -775,6 +834,7 @@ tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
             <option value="4">ANULADA</option>
             <option value="5">DESPLAZADA</option>
             <option value="12">REC., ADMITIDA y L.ESP.</option>
+            <% } %>
         </select>
         FECHA ENTRE <input id="diaIn" type="text" maxlength="2" size="2"
             onchange="document.getElementById('FECHAINI').value=Atimestamp(this.value,document.getElementById('mesIn').value)">
@@ -804,12 +864,12 @@ tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
     </div>
     <div align="center"><progress id="miBarra" max="100" value="0"></progress><span id="miAvance">0%</span></div>
     <br />
-    <!--<input id="acceder" type="button" value="acceder" onclick="haHabidoEdicion=false;ocultaEditor();document.getElementById('reiframe').style.visibility='visible';document.getElementById('decrip').innerHTML='';iniciaBarra();/*cucu=setInterval(gestBarra, 1000);*/LanzaConexion();cargaOperaciones();document.getElementById('genk').submit();" />-->
+   
     <input id="acceder" type="button" value="acceder" onclick="LanzaCargaCambioEstado();" />
-    <input id="aCSV" type="button" value="aCSV"
-        onclick="/*AjustaSalida();*/arrayObjToCsv(aPresentar,['id','nequipo','nsol', 'clave','tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro', 'Ap11', 'Ap12', 'Nombre1', 'Edad1', 'Ap21', 'Ap22', 'Nombre2', 'Edad2', 'Ap31', 'Ap32', 'Nombre3', 'Edad3', 'Ap41', 'Ap42', 'Nombre4', 'Edad4', 'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP','solicitada', 'recibida']);" />
-    <input id="CambiaEstadosSinRecargar" type="button" value="CambiaEstadosSinRecargar"
-        onclick="cargaOperaciones();" />
+    <input id="aCSV" type="button" value="aCSV" onclick="arrayObjToCsv(aPresentar,['id','nequipo','nsol', 'clave','tipo', 'tipoC', 'nombre_centro', 'loc_centro', 'cod_centro', 'Ap11', 'Ap12', 'Nombre1', 'Edad1', 'Ap21', 'Ap22', 'Nombre2', 'Edad2', 'Ap31', 'Ap32', 'Nombre3', 'Edad3', 'Ap41', 'Ap42', 'Nombre4', 'Edad4', 'ApP1', 'ApP2', 'NomP', 'TelP1', 'TelP2', 'EmailP','solicitada', 'recibida']);" />
+    <% if (rol==='admin'){ %>
+    <input id="CambiaEstadosSinRecargar" type="button" value="CambiaEstadosSinRecargar" onclick="cargaOperaciones();" />
+    <% } %>
     <input id="BuscaDuplicados" type="button" value="BuscaDuplicados" onclick="BuscaDuplicados();" />
     <input type="button" value="stringify Privkeys" onclick="alert(JSON.stringify(clavesPrivadas))" />
 

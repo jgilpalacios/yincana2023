@@ -112,7 +112,7 @@ exports.admin = async (req, res, next) => {
     try {
         let yincanas = await models.Yincana.findAll();
         //console.log('+++++++++++++++++', JSON.stringify(yincanas))
-        res.render('admin', { yincanas });
+        res.render('admin', { yincanas, rol:'admin'});
     } catch (error) {
         console.log(error);
     }
@@ -417,7 +417,7 @@ exports.lector = async (req, res, next) => {
     try {
         let yincanas = await models.Yincana.findAll();
         //console.log('+++++++++++++++++', JSON.stringify(yincanas))
-        res.render('lector', { yincanas });
+        res.render('admin'/*'lector'*/, { yincanas, rol:'lector' });
     } catch (error) {
         console.log(error);
     }
@@ -523,7 +523,7 @@ exports.ayto = async (req, res, next) => {
               }
             });
         //console.log('+++++++++++++++++', JSON.stringify(yincanas))
-        res.render('ayto', { yincanas });
+        res.render('admin'/*'ayto'*/, { yincanas , rol:"ayto"});
     } catch (error) {
         console.log(error);
     }
