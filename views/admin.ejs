@@ -116,6 +116,7 @@
         //en Base de Datos
         const cargaOperaciones = async () => {
             alert('se lanza')
+            let roles=['admin'];
             if (operacionesPendientes) {
                 const miFetch = await fetch(getAbsolutePath() + '/update', {
                     headers: {
@@ -123,7 +124,7 @@
                     },
                     method: 'POST',
                     //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
-                    body: JSON.stringify(totalOperaciones)
+                    body: JSON.stringify({roles,totalOperaciones})
                 });
                 // Transforma la respuesta. En este caso lo convierte a JSON
                 const json = await miFetch.json();
@@ -251,23 +252,18 @@
 
 
             //para gestionar la autenticacion:
-            let key_yincanas = [];
-            <% if (rol==='ayto'){ %>
+            let key_yincana;           
             clavesPrivadas.forEach((yi,i) => {
-                if(+yincana-1===i)key_yincanas.push(calcMD5(yi))
+                if(+yincana-1===i)key_yincana=calcMD5(yi);
             })
-            <% } else { %>
-            clavesPrivadas.forEach(yi => {
-                key_yincanas.push(calcMD5(yi))
-            })
-            <% } %>
             //alert(key_yincanas);
             <% if (rol==='admin'){ %>
             let key_admin = calcMD5(document.getElementById('CAdmin').value);
             <% } else if (rol==='lector'){ %>
             let key_lector = calcMD5(document.getElementById('CAdmin').value);
             <% } %>
-            //alert(key_admin);
+            //para indicar a que roles se permite acceder al middelware
+            let roles=['admin','lector','ayto'];
 
             //alert(getAbsolutePath());
             const miFetch = await fetch(getAbsolutePath() + '/get', {
@@ -277,11 +273,11 @@
                 method: 'POST',
                 //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
                 <% if (rol==='admin'){ %>
-                body: JSON.stringify({ key_yincanas, key_admin, yincana, estado, fechaIn, fechaFin })
+                body: JSON.stringify({ roles, key_yincana, key_admin, yincana, estado, fechaIn, fechaFin })
                 <% } else if (rol==='lector'){ %>
-                body: JSON.stringify({ key_yincanas, key_lector, yincana, estado, fechaIn, fechaFin })
+                body: JSON.stringify({ roles, key_yincana, key_lector, yincana, estado, fechaIn, fechaFin })
                 <% } else if (rol==='ayto'){ %>
-                body: JSON.stringify({ key_yincanas, yincana, estado, fechaIn, fechaFin })    
+                body: JSON.stringify({ roles, key_yincana, yincana, estado, fechaIn, fechaFin })    
                 <% } %>
             });
             // Transforma la respuesta. En este caso lo convierte a JSON
@@ -325,7 +321,7 @@
                 },
                 method: 'POST',
                 //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
-                body: JSON.stringify({ users: ['admin'] })
+                body: JSON.stringify({ users: ['admin','lector','ayto'] })
             });
             // Transforma la respuesta. En este caso lo convierte a JSON
             const json = await miFetch.json();
@@ -463,13 +459,15 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                     document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
                     let conCambios = { id: inscripcionEditada.id, valor: Aes.Ctr.encryptFijo(JSON.stringify(datosLeidos), inscripcionEditada.claveAES, 256) };
                     alert(JSON.stringify(conCambios));
+
+                    let roles=['admin'];
                     const miFetch = await fetch(getAbsolutePath() + '/modifica', {
                         headers: {
                             'Content-type': 'application/json'
                         },
                         method: 'POST',
                         //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
-                        body: JSON.stringify(conCambios)
+                        body: JSON.stringify({roles, conCambios})
                     });
                     // Transforma la respuesta. En este caso lo convierte a JSON
                     const json = await miFetch.json();
@@ -530,13 +528,14 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                         document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
                         conCambios.valor = Aes.Ctr.encryptFijo(JSON.stringify(datosLeidos), inscripcionEditada.claveAES, 256);
                     } else alert('no se han hecho cambios');//alert(JSON.stringify(conCambios));
+                    let roles=['admin'];
                     const miFetch = await fetch(getAbsolutePath() + '/desplaza', {
                         headers: {
                             'Content-type': 'application/json'
                         },
                         method: 'POST',
                         //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
-                        body: JSON.stringify(conCambios)
+                        body: JSON.stringify({roles,conCambios})
                     });
                     // Transforma la respuesta. En este caso lo convierte a JSON
                     const json = await miFetch.json();

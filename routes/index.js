@@ -32,11 +32,14 @@ router.post('/admin/desplaza', inscripcionController.ponSesionUser, inscripcionC
 
 router.get('/consulta', inscripcionController.lector);
 
-router.post('/consulta/get', inscripcionController.ponSesionLector, inscripcionController.lectorGet);
+//router.post('/consulta/get', inscripcionController.ponSesionLector, inscripcionController.lectorGet);
+router.post('/consulta/get', inscripcionController.ponSesionUser, inscripcionController.lectorGet);
+
 
 router.get('/:yincanaId(\\d+)/ayto', inscripcionController.ayto);
 
-router.post('/:yincanaId(\\d+)/ayto/get', inscripcionController.ponSesionAyto,inscripcionController.aytoGet);
+//router.post('/:yincanaId(\\d+)/ayto/get', inscripcionController.ponSesionAyto,inscripcionController.aytoGet);
+router.post('/:yincanaId(\\d+)/ayto/get', inscripcionController.ponSesionUser,inscripcionController.aytoGet);
 
 
 //router.get('/quizzes/new',                 quizController.new);

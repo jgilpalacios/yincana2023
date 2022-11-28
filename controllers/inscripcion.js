@@ -33,7 +33,7 @@ exports.create = async (req, res, next/*, yinkanaId*/) => {
 
     const { clave, encr, valor } = req.body;
 
-    console.log('+++++**++++++++++', JSON.stringify(req.params),'\n'+JSON.stringify(req.body));
+    console.log('+++++**++++++++++', JSON.stringify(req.params), '\n' + JSON.stringify(req.body));
     let yincanaId = req.params.yincanaId;
 
     // First, we start a transaction from your connection and save it into a variable
@@ -112,7 +112,7 @@ exports.admin = async (req, res, next) => {
     try {
         let yincanas = await models.Yincana.findAll();
         //console.log('+++++++++++++++++', JSON.stringify(yincanas))
-        res.render('admin', { yincanas, rol:'admin'});
+        res.render('admin', { yincanas, rol: 'admin' });
     } catch (error) {
         console.log(error);
     }
@@ -190,23 +190,25 @@ const pasaAHistorico = async (inscrip) => {
         });
         await his_inscripcion.save();
     } catch (error) {
-        trow (error)
+        trow(error)
     }
 }
 
 exports.adminUpdate = async (req, res, next) => {
     //if (req.session.admin) {//si no se es administrador
+    //console.log('++++++++--------adminUpdate')
     let inscripciones = [];
-    for (i in req.body) {
-        if (req.body[i][0] === 'ESTADO') {
-            if (!inscripciones[req.body[i][1]]) inscripciones[req.body[i][1]] = {};
-            inscripciones[req.body[i][1]].estado = +req.body[i][2];
-        } else if (req.body[i][0] === 'NEQUIPO') {
-            if (!inscripciones[req.body[i][1]]) inscripciones[req.body[i][1]] = {};
-            inscripciones[req.body[i][1]].nequipo = +req.body[i][2];
+    let totalOperaciones=req.body.totalOperaciones;
+    for (i in totalOperaciones) {
+        if (totalOperaciones[i][0] === 'ESTADO') {
+            if (!inscripciones[totalOperaciones[i][1]]) inscripciones[totalOperaciones[i][1]] = {};
+            inscripciones[totalOperaciones[i][1]].estado = +totalOperaciones[i][2];
+        } else if (totalOperaciones[i][0] === 'NEQUIPO') {
+            if (!inscripciones[totalOperaciones[i][1]]) inscripciones[totalOperaciones[i][1]] = {};
+            inscripciones[totalOperaciones[i][1]].nequipo = +totalOperaciones[i][2];
         }
     }
-
+    //console.log('++++++++--------adminUpdate',JSON.stringify(inscripciones))
     const t = await sequelize.transaction();
     try {
         let actualizamos = [];
@@ -239,7 +241,7 @@ exports.adminUpdate = async (req, res, next) => {
                 //inscrip =
                 //await his_inscripcion.save();
                 await inscrip.save();
-                //console.log('-------',JSON.stringify(inscrip));
+                console.log('-------',JSON.stringify(inscrip));
                 actualizamos.push(inscrip);
                 //console.log('-------',JSON.stringify(actualizamos));
 
@@ -261,7 +263,7 @@ exports.adminUpdate = async (req, res, next) => {
 };
 
 exports.adminModifica = async (req, res, next) => {
-    let { id, valor } = req.body;
+    let { id, valor } = req.body.conCambios;
     const t = await sequelize.transaction();
     try {
         let inscripcion = await models.Inscripcion.findByPk(id);
@@ -278,7 +280,7 @@ exports.adminModifica = async (req, res, next) => {
 
 //desplaza
 exports.adminDesplaza = async (req, res, next) => {
-    let { id, nequipo, encr, valor, yincanaId } = req.body;
+    let { id, nequipo, encr, valor, yincanaId } = req.body.conCambios;
     const t = await sequelize.transaction();
     //console.log('+++++++', id, '\n', encr, '\n', valor, '\n', yincanaId);
     try {
@@ -297,110 +299,193 @@ exports.adminDesplaza = async (req, res, next) => {
     }
 }
 
-exports.ponSesionUser = async (req, res, next) => {
+/*exports.ponSesionUserAntiguo = async (req, res, next) => {
     const { key_yincanas, key_admin, yincana } = req.body;
     //let autorizado = false;//para ver si tiene autorizacion
     try {
-        let yincanas=await models.Yincana.findAll();
-        let yinkananas_autorizadas=[];
-        yincanas.forEach(y=>{
+        let yincanas = await models.Yincana.findAll();
+        let yinkananas_autorizadas = [];
+        yincanas.forEach(y => {
             yinkananas_autorizadas.push(y.MD5clavePrivada)
         })
-        //console.log('·················',JSON.stringify(yinkananas_autorizadas))
-    /*let yinkananas_autorizadas = [
-        //'adf32eb7a85bd1806e1dbef28f244ec4',//Boadilla
-        //'44e9977d9d58beecaa11d4e46574d83a'//Collado Villalba
-        '99d79a70c6bbd2bcfd9fe2d1541b8ad5',
-        'e2314827cc0b515871a21b9468ddffd9'
-    ];*/
-    let rol = await models.Rol.findAll({
-        where: {
-          nombre: 'admin'
-        }
-    });
-    let clave_admin=rol[0].clave;
-    //let clave_admin = '21232f297a57a5a743894a0e4a801fc3';//md5(admin);
-    //console.log(key_yincanas, '\n', yinkananas_autorizadas[0], '\n', yinkananas_autorizadas[1], '\n', yincana - 1, '\n',
-    //   req.session.admin, '\n', key_admin)
-    if (req.session.admin) {
-        console.log('+++++++++++', 'se entra')
-        next();
-    } else {
-        const { key_yincanas, key_admin, yincana } = req.body;
-        if (!key_yincanas || !key_admin || !yincana) {
-            console.log('-------', 'se entra')
-            delete req.session.admin;
-            res.send({ autorizado: false });
-        } else {
-            console.log('************* ', key_yincanas, key_admin, yincana);
-            if (key_admin === clave_admin && key_yincanas[yincana - 1] === yinkananas_autorizadas[yincana - 1]) {
-                console.log('++++++++++++ ', yinkananas_autorizadas, clave_admin);
-                req.session.admin = true;
-                next();
-            } else {
-                res.send({ autorizado: false });
+        
+        let rol = await models.Rol.findAll({
+            where: {
+                nombre: 'admin'
             }
-        }
+        });
+        let clave_admin = rol[0].clave;
+        //let clave_admin = '21232f297a57a5a743894a0e4a801fc3';//md5(admin);
+        //console.log(key_yincanas, '\n', yinkananas_autorizadas[0], '\n', yinkananas_autorizadas[1], '\n', yincana - 1, '\n',
+        //   req.session.admin, '\n', key_admin)
+        if (req.session.admin) {
+            console.log('+++++++++++', 'se entra')
+            next();
+        } else {
+            const { key_yincanas, key_admin, yincana } = req.body;
+            if (!key_yincanas || !key_admin || !yincana) {
+                console.log('-------', 'se entra')
+                delete req.session.admin;
+                res.send({ autorizado: false });
+            } else {
+                console.log('************* ', key_yincanas, key_admin, yincana);
+                if (key_admin === clave_admin && key_yincanas[yincana - 1] === yinkananas_autorizadas[yincana - 1]) {
+                    console.log('++++++++++++ ', yinkananas_autorizadas, clave_admin);
+                    req.session.admin = true;
+                    next();
+                } else {
+                    res.send({ autorizado: false });
+                }
+            }
 
-    }
+        }
     } catch (error) {
         console.log(error);
     }
 
+}*/
+
+exports.ponSesionUser = async (req, res, next) => {
+    console.log('++++++-----admin: ' + req.session.admin + ' lector: ' + req.session.lector + ' ayto: ' + req.session.ayto);
+    //si hay sesion establecida
+    if (req.session.admin) {
+        next();
+    } else if (req.session.lector) {
+        if (req.session.roles && req.session.roles.includes('lector')) next();
+    } else if (req.session.ayto) {
+        if (req.session.roles && req.session.roles.includes('ayto')) next();
+    } else {
+
+        //si no hay sesion
+        const { key_yincana, key_admin, key_lector, yincana, roles } = req.body;
+        try {
+            let datosYincana = await models.Yincana.findByPk(yincana);
+            let yincanana_autorizada = datosYincana.MD5clavePrivada === key_yincana;
+            let user = 'ayto';
+            yincanana_autorizada = yincanana_autorizada && user === 'ayto';
+            if (key_admin) {
+                let rol = await models.Rol.findAll({
+                    where: {
+                        nombre: 'admin'
+                    }
+                });
+                user = 'admin';
+                yincanana_autorizada = yincanana_autorizada && rol[0].clave === key_admin;
+            }
+            if (key_lector) {
+                let rol = await models.Rol.findAll({
+                    where: {
+                        nombre: 'lector'
+                    }
+                });
+                user = 'lector';
+                yincanana_autorizada = yincanana_autorizada && rol[0].clave === key_lector;
+            }
+            yincanana_autorizada = yincanana_autorizada && roles.includes(user);
+            if (user === 'ayto') {
+                if (req.session.ayto) {
+                    if (!yincanana_autorizada) {
+                        delete req.session.ayto;
+                        res.send({ autorizado: false });
+                    }
+                } else {
+                    if (yincanana_autorizada) {
+                        req.session.ayto = true;
+                        req.session.roles = roles;
+                        next();
+                    } else {
+                        delete req.session.ayto;
+                        res.send({ autorizado: false });
+                    }
+                }
+            } else if (user === 'lector') {
+                if (req.session.lector) {
+                    if (!yincanana_autorizada) {
+                        delete req.session.lector;
+                        res.send({ autorizado: false });
+                    }
+                } else {
+                    if (yincanana_autorizada) {
+                        req.session.lector = true;
+                        req.session.roles = roles;
+                        next();
+                    } else {
+                        delete req.session.lector;
+                        res.send({ autorizado: false });
+                    }
+                }
+            } else if (user === 'admin') {
+                if (req.session.admin) {
+                    if (!yincanana_autorizada) {
+                        delete req.session.admin;
+                        res.send({ autorizado: false });
+                    }
+                } else {
+                    if (yincanana_autorizada) {
+                        req.session.admin = true;
+                        req.session.roles = roles;
+                        next();
+                    } else {
+                        delete req.session.admin;
+                        res.send({ autorizado: false });
+                    }
+                }
+            }
+
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
 }
 
-exports.ponSesionLector = async (req, res, next) => {
+/*exports.ponSesionLector = async (req, res, next) => {
     const { key_yincanas, key_lector, yincana } = req.body;
     //let autorizado = false;//para ver si tiene autorizacion
     try {
-        let yincanas=await models.Yincana.findAll();
-        let yinkananas_autorizadas=[];
-        yincanas.forEach(y=>{
+        let yincanas = await models.Yincana.findAll();
+        let yinkananas_autorizadas = [];
+        yincanas.forEach(y => {
             yinkananas_autorizadas.push(y.MD5clavePrivada)
         })
-        //console.log('·················',JSON.stringify(yinkananas_autorizadas))
-    /*let yinkananas_autorizadas = [
-        //'adf32eb7a85bd1806e1dbef28f244ec4',//Boadilla
-        //'44e9977d9d58beecaa11d4e46574d83a'//Collado Villalba
-        '99d79a70c6bbd2bcfd9fe2d1541b8ad5',
-        'e2314827cc0b515871a21b9468ddffd9'
-    ];*/
-    let rol = await models.Rol.findAll({
-        where: {
-          nombre: 'lector'
-        }
-    });
-    let clave_lector=rol[0].clave;
-
-    //let clave_lector = '21232f297a57a5a743894a0e4a801fc3';//md5(admin);
-    //console.log(key_yincanas, '\n', yinkananas_autorizadas[0], '\n', yinkananas_autorizadas[1], '\n', yincana - 1, '\n',
-    //   req.session.admin, '\n', key_admin)
-    if (req.session.lector) {
-        console.log('+++++++++++', 'se entra')
-        next();
-    } else {
-        const { key_yincanas, key_lector, yincana } = req.body;
-        if (!key_yincanas || !key_lector || !yincana) {
-            console.log('-------', 'se entra')
-            delete req.session.lector;
-            res.send({ autorizado: false });
-        } else {
-            console.log('************* ', key_yincanas, clave_lector, yincana);
-            if (key_lector === clave_lector && key_yincanas[yincana - 1] === yinkananas_autorizadas[yincana - 1]) {
-                console.log('++++++++++++ ', yinkananas_autorizadas, clave_lector);
-                req.session.lector = true;
-                next();
-            } else {
-                res.send({ autorizado: false });
+        
+        let rol = await models.Rol.findAll({
+            where: {
+                nombre: 'lector'
             }
-        }
+        });
+        let clave_lector = rol[0].clave;
 
-    }
+        //let clave_lector = '21232f297a57a5a743894a0e4a801fc3';//md5(admin);
+        //console.log(key_yincanas, '\n', yinkananas_autorizadas[0], '\n', yinkananas_autorizadas[1], '\n', yincana - 1, '\n',
+        //   req.session.admin, '\n', key_admin)
+        if (req.session.lector) {
+            console.log('+++++++++++', 'se entra')
+            next();
+        } else {
+            const { key_yincanas, key_lector, yincana } = req.body;
+            if (!key_yincanas || !key_lector || !yincana) {
+                console.log('-------', 'se entra')
+                delete req.session.lector;
+                res.send({ autorizado: false });
+            } else {
+                console.log('************* ', key_yincanas, clave_lector, yincana);
+                if (key_lector === clave_lector && key_yincanas[yincana - 1] === yinkananas_autorizadas[yincana - 1]) {
+                    console.log('++++++++++++ ', yinkananas_autorizadas, clave_lector);
+                    req.session.lector = true;
+                    next();
+                } else {
+                    res.send({ autorizado: false });
+                }
+            }
+
+        }
     } catch (error) {
         console.log(error);
     }
 
-}
+}*/
 
 exports.quitaSesionUser = async (req, res, next) => {
     let borrados = '';
@@ -417,7 +502,7 @@ exports.lector = async (req, res, next) => {
     try {
         let yincanas = await models.Yincana.findAll();
         //console.log('+++++++++++++++++', JSON.stringify(yincanas))
-        res.render('admin'/*'lector'*/, { yincanas, rol:'lector' });
+        res.render('admin'/*'lector'*/, { yincanas, rol: 'lector' });
     } catch (error) {
         console.log(error);
     }
@@ -425,7 +510,7 @@ exports.lector = async (req, res, next) => {
 
 exports.lectorGet = async (req, res, next) => {
     const { yincana, estado, fechaIn, fechaFin } = req.body;
-    
+
     try {
         let condicionesBusqueda = [{ yincanaId: yincana }];
         if (estado !== '' && +estado < 5) {
@@ -457,73 +542,57 @@ exports.lectorGet = async (req, res, next) => {
     }
 };
 
-exports.ponSesionAyto = async (req, res, next) => {
+/*exports.ponSesionAyto = async (req, res, next) => {
     let yincanaIdAut = +req.params.yincanaId;
-    const { key_yincanas,  yincana } = req.body;
+    const { key_yincanas, yincana } = req.body;
     //let autorizado = false;//para ver si tiene autorizacion
     try {
-        let yincanas=await models.Yincana.findAll();
-        let yinkananas_autorizadas=[];
-        yincanas.forEach(y=>{
-            if(+y.id === yincanaIdAut) yinkananas_autorizadas.push(y.MD5clavePrivada)
+        let yincanas = await models.Yincana.findAll();
+        let yinkananas_autorizadas = [];
+        yincanas.forEach(y => {
+            if (+y.id === yincanaIdAut) yinkananas_autorizadas.push(y.MD5clavePrivada)
         });
-        //console.log('·················',JSON.stringify(yinkananas_autorizadas))
-    /*let yinkananas_autorizadas = [
-        //'adf32eb7a85bd1806e1dbef28f244ec4',//Boadilla
-        //'44e9977d9d58beecaa11d4e46574d83a'//Collado Villalba
-        '99d79a70c6bbd2bcfd9fe2d1541b8ad5',
-        'e2314827cc0b515871a21b9468ddffd9'
-    ];*/
-    /*let rol = await models.Rol.findAll({
-        where: {
-          nombre: 'lector'
-        }
-    });
-    let clave_lector=rol[0].clave;*/
-
-    //let clave_lector = '21232f297a57a5a743894a0e4a801fc3';//md5(admin);
-    //console.log(key_yincanas, '\n', yinkananas_autorizadas[0], '\n', yinkananas_autorizadas[1], '\n', yincana - 1, '\n',
-    //   req.session.admin, '\n', key_admin)
-    if (req.session.ayto) {
-        console.log('+++++++++++', 'se entra')
-        if(key_yincanas[0]===yinkananas_autorizadas[0]) next();
-        else {
-            delete req.session.ayto;
-            res.send({ autorizado: false });
-        }//next();
-    } else {
-        const { key_yincanas, yincana } = req.body;
-        if (!key_yincanas || !yincana) {
-            console.log('-------', 'se entra')
-            delete req.session.ayto;
-            res.send({ autorizado: false });
-        } else {
-            console.log('************* ', key_yincanas, yincana);
-            if (key_yincanas[yincana - 1] === yinkananas_autorizadas[yincana - 1]) {
-                console.log('++++++++++++ ', yinkananas_autorizadas);
-                req.session.ayto = {rol:'ayto', yincanaId:yincana};
-                next();
-            } else {
+        
+        if (req.session.ayto) {
+            console.log('+++++++++++', 'se entra')
+            if (key_yincanas[0] === yinkananas_autorizadas[0]) next();
+            else {
+                delete req.session.ayto;
                 res.send({ autorizado: false });
+            }//next();
+        } else {
+            const { key_yincanas, yincana } = req.body;
+            if (!key_yincanas || !yincana) {
+                console.log('-------', 'se entra')
+                delete req.session.ayto;
+                res.send({ autorizado: false });
+            } else {
+                console.log('************* ', key_yincanas, yincana);
+                if (key_yincanas[yincana - 1] === yinkananas_autorizadas[yincana - 1]) {
+                    console.log('++++++++++++ ', yinkananas_autorizadas);
+                    req.session.ayto = { rol: 'ayto', yincanaId: yincana };
+                    next();
+                } else {
+                    res.send({ autorizado: false });
+                }
             }
-        }
 
-    }
+        }
     } catch (error) {
         console.log(error);
     }
 
-}
+}*/
 
 exports.ayto = async (req, res, next) => {
     try {
         let yincanas = await models.Yincana.findAll({
             where: {
                 id: +req.params.yincanaId
-              }
-            });
+            }
+        });
         //console.log('+++++++++++++++++', JSON.stringify(yincanas))
-        res.render('admin'/*'ayto'*/, { yincanas , rol:"ayto"});
+        res.render('admin'/*'ayto'*/, { yincanas, rol: "ayto" });
     } catch (error) {
         console.log(error);
     }
@@ -531,7 +600,7 @@ exports.ayto = async (req, res, next) => {
 
 exports.aytoGet = async (req, res, next) => {
     const { yincana, estado, fechaIn, fechaFin } = req.body;
-    
+
     try {
         let condicionesBusqueda = [{ yincanaId: yincana }];
         if (estado !== '' && +estado < 5) {
@@ -541,7 +610,7 @@ exports.aytoGet = async (req, res, next) => {
                 condicionesBusqueda.push({ estado: { [Op.lt]: 4 } });
             } else if (+estado === 12) {
                 condicionesBusqueda.push({ [Op.or]: [{ estado: 1 }, { estado: 2 }, { estado: 3 }] });
-            } else{//para Aytos se muestran solo admitidas y lista de espera
+            } else {//para Aytos se muestran solo admitidas y lista de espera
                 condicionesBusqueda.push({ [Op.or]: [{ estado: 2 }, { estado: 3 }] });
             }
         }
