@@ -20,7 +20,7 @@
     <!--<script type="text/javascript" src="../mijs/encriptador.js"></script>-->
     <script src="../mijs/encriptador.js"></script>
     <script src="../js/jsencrypt.min.js"></script>
-    <script src="../mijs/desencriptakk.js"></script>
+    <!--<script src="../mijs/desencriptakk.js"></script>-->
 
     <script type="text/javascript" src="../mijs/generador.js"></script>
     <!--<script type="text/javascript" src="../mijs/generadorAdultos.js"></script>-->
@@ -115,8 +115,8 @@
         ///para realizar las actualizaciones de estado, o numero de equipo
         //en Base de Datos
         const cargaOperaciones = async () => {
-            alert('se lanza')
-            let roles=['admin'];
+            //alert('se lanza')
+            //let roles=['admin'];
             if (operacionesPendientes) {
                 const miFetch = await fetch(getAbsolutePath() + '/update', {
                     headers: {
@@ -124,7 +124,7 @@
                     },
                     method: 'POST',
                     //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
-                    body: JSON.stringify({roles,totalOperaciones})
+                    body: JSON.stringify({/*roles,*/totalOperaciones})
                 });
                 // Transforma la respuesta. En este caso lo convierte a JSON
                 const json = await miFetch.json();
@@ -263,7 +263,7 @@
             let key_lector = calcMD5(document.getElementById('CAdmin').value);
             <% } %>
             //para indicar a que roles se permite acceder al middelware
-            let roles=['admin','lector','ayto'];
+            //let roles=['admin','lector','ayto'];
 
             //alert(getAbsolutePath());
             const miFetch = await fetch(getAbsolutePath() + '/get', {
@@ -273,11 +273,11 @@
                 method: 'POST',
                 //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
                 <% if (rol==='admin'){ %>
-                body: JSON.stringify({ roles, key_yincana, key_admin, yincana, estado, fechaIn, fechaFin })
+                body: JSON.stringify({ /*estableceSesion:true, roles,*/ key_yincana, key_admin, yincana, estado, fechaIn, fechaFin })
                 <% } else if (rol==='lector'){ %>
-                body: JSON.stringify({ roles, key_yincana, key_lector, yincana, estado, fechaIn, fechaFin })
+                body: JSON.stringify({ /*estableceSesion:true, roles,*/ key_yincana, key_lector, yincana, estado, fechaIn, fechaFin })
                 <% } else if (rol==='ayto'){ %>
-                body: JSON.stringify({ roles, key_yincana, yincana, estado, fechaIn, fechaFin })    
+                body: JSON.stringify({ /*estableceSesion:true, roles,*/ key_yincana, yincana, estado, fechaIn, fechaFin })    
                 <% } %>
             });
             // Transforma la respuesta. En este caso lo convierte a JSON
@@ -460,14 +460,14 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                     let conCambios = { id: inscripcionEditada.id, valor: Aes.Ctr.encryptFijo(JSON.stringify(datosLeidos), inscripcionEditada.claveAES, 256) };
                     alert(JSON.stringify(conCambios));
 
-                    let roles=['admin'];
+                    //let roles=['admin'];
                     const miFetch = await fetch(getAbsolutePath() + '/modifica', {
                         headers: {
                             'Content-type': 'application/json'
                         },
                         method: 'POST',
                         //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
-                        body: JSON.stringify({roles, conCambios})
+                        body: JSON.stringify({/*roles,*/ conCambios})
                     });
                     // Transforma la respuesta. En este caso lo convierte a JSON
                     const json = await miFetch.json();
@@ -491,10 +491,10 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                 let aux = getAbsolutePath().split(inscripcionEditada.yincanaId+'/ayto');
             <% } %>
             let urlComprobar = aux[0] + inscripcionEditada.yincanaId + `/comprueba?contador=${NUM_SOL}&clave=${CLAVE}`;
-            alert(urlComprobar);
+            //alert(urlComprobar);
             //ponQR(urlComprobar);/*resultadoBD*/DatosSolicitud = tomaQR(urlComprobar, NUM_SOL, CLAVE);//NUM_SOL=DatosSolicitud[2];/*window.top.window.A(resultadoBD)*/;
             DatosSolicitud = generaQR(urlComprobar, NUM_SOL, CLAVE);
-            alert('entramos: ' + '../' + inscripcionEditada.yincanaId + '/LogoGymk18.jpg');
+            //alert('entramos: ' + '../' + inscripcionEditada.yincanaId + '/LogoGymk18.jpg');
             if (!datosLeidos.tipo) lee();
             /*let inscripcioon=inscripciones.find(ins => ins.id === element.id)()
             NUM_SOL=datosLeidos.nsolF*/
@@ -528,14 +528,14 @@ Nombre: <input name="NomP" id="NomP" onchange="seActualiza(this);" maxlength="20
                         document.getElementById('decrip').innerHTML = CreaTablaInscripciones(aPresentar);
                         conCambios.valor = Aes.Ctr.encryptFijo(JSON.stringify(datosLeidos), inscripcionEditada.claveAES, 256);
                     } else alert('no se han hecho cambios');//alert(JSON.stringify(conCambios));
-                    let roles=['admin'];
+                    //let roles=['admin'];
                     const miFetch = await fetch(getAbsolutePath() + '/desplaza', {
                         headers: {
                             'Content-type': 'application/json'
                         },
                         method: 'POST',
                         //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
-                        body: JSON.stringify({roles,conCambios})
+                        body: JSON.stringify({/*roles,*/conCambios})
                     });
                     // Transforma la respuesta. En este caso lo convierte a JSON
                     const json = await miFetch.json();

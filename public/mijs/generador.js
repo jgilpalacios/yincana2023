@@ -1,5 +1,5 @@
 var getImageFromUrl = function (url, callback) {
-	alert(url)
+	//alert(url)
 	var img = new Image();
 	img.onError = function () {
 		alert('Cannot load image: "' + url + '"');
@@ -148,7 +148,7 @@ function lee() {//alert('entramos');
 }
 
 var generaPDF = function (imgData) {
-	alert(JSON.stringify(DatosSolicitud) + '\n' + 'se invoca ' + JSON.stringify(datosLeidos));
+	//alert(JSON.stringify(DatosSolicitud) + '\n' + 'se invoca ' + JSON.stringify(datosLeidos));
 
 	var doc = new jsPDF();
 	let { tipo, tipoC, nombre_centro, loc_centro, cod_centro, Ap11, Ap12, Nombre1, Edad1, Ap21, Ap22, Nombre2, Edad2, Ap31, Ap32, Nombre3, Edad3, Ap41, Ap42, Nombre4, Edad4, ApP1, ApP2, NomP, TelP1, TelP2, EmailP } = datosLeidos;
@@ -251,7 +251,7 @@ var generaPDF = function (imgData) {
 	doc.text(10, 242, 'Comunidad de Madrid.');
 	doc.text(10, 246, 'La participación en la Yincana implica la autorización expresa a la organización para la toma y difusión de fotos o vídeos de los participantes con');
 	doc.text(10, 249, 'carácter exclusivamente informativo o promocional sobre el evento.');
-	doc.text(20, 252, 'Puede consultar el estado de la solicitud escaneando el codigo QR o visitando:'); alert('se llega1');
+	doc.text(20, 252, 'Puede consultar el estado de la solicitud escaneando el codigo QR o visitando:'); //alert('se llega1');
 	doc.setFontType("bold"); doc.text(25, 255, DatosSolicitud[1]); doc.setFontType("normal");
 
 	if (DatosSolicitud[0]) doc.addImage(DatosSolicitud[0], 'JPEG', 85, 260, 30, 30);

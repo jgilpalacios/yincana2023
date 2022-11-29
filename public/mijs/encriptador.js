@@ -195,3 +195,22 @@ const generaDatos=()=>{
 	return {AES,encr,clave,datos: JSON.stringify(datos),valor,dcc};
 }
 
+///partes de encriptar y desencriptar con RSA un solo bloque pasando la clave privada y publica en la llamada
+function desencriptakk(texto,clavePriv){
+	// Decrypt with the private key...
+			  var decrypt = new JSEncrypt();
+			  //decrypt.setPrivateKey(document.getElementById('privkey').value);
+			  decrypt.setPrivateKey(clavePriv);
+			  var uncrypted = decrypt.decrypt(texto);//||document.getElementById('output').value);
+	
+			  //document.getElementById('output2').value=uncrypted;
+		return uncrypted;
+	}
+
+
+function encriptakk(texto,clavePub){//alert(' k')
+	var encrypt = new JSEncrypt();//alert(' k')
+	encrypt.setPublicKey(clavePub);
+	var encrypted = encrypt.encrypt(texto);//||document.getElementById('input').value);
+	return encrypted;
+}
