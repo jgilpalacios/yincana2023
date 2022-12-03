@@ -20,26 +20,26 @@ router.get('/:yincanaId(\\d+)/comprueba', inscripcionController.comprueba);
 
 router.get('/admin', inscripcionController.admin);
 
-router.post('/admin/get', inscripcionController.sesionEstablece, inscripcionController.ponSesionUser, inscripcionController.adminGet);
+router.post('/admin/get', inscripcionController.ponSesionUser, inscripcionController.adminGet);
 
-router.post('/admin/update', inscripcionController.sesionRolAdmin,inscripcionController.ponSesionUser, inscripcionController.adminUpdate);
+router.post('/admin/update', inscripcionController.sesionRolAdmin, inscripcionController.adminUpdate);
 
 router.post('/admin/quitaSesionUser', inscripcionController.quitaSesionUser);
 
-router.post('/admin/modifica', inscripcionController.sesionRolAdmin,inscripcionController.ponSesionUser, inscripcionController.adminModifica);
+router.post('/admin/modifica', inscripcionController.sesionRolAdmin, inscripcionController.adminModifica);
 
-router.post('/admin/desplaza', inscripcionController.sesionRolAdmin,inscripcionController.ponSesionUser, inscripcionController.adminDesplaza);
+router.post('/admin/desplaza', inscripcionController.sesionRolAdmin, inscripcionController.adminDesplaza);
 
 router.get('/consulta', inscripcionController.lector);
 
 //router.post('/consulta/get', inscripcionController.ponSesionLector, inscripcionController.lectorGet);
-router.post('/consulta/get', inscripcionController.sesionEstablece,inscripcionController.ponSesionUser, inscripcionController.lectorGet);
+router.post('/consulta/get', inscripcionController.ponSesionUser, inscripcionController.lectorGet);
 
 
 router.get('/:yincanaId(\\d+)/ayto', inscripcionController.ayto);
 
 //router.post('/:yincanaId(\\d+)/ayto/get', inscripcionController.ponSesionAyto,inscripcionController.aytoGet);
-router.post('/:yincanaId(\\d+)/ayto/get', inscripcionController.sesionEstablece,inscripcionController.ponSesionUser,inscripcionController.aytoGet);
+router.post('/:yincanaId(\\d+)/ayto/get', inscripcionController.ponSesionUser,inscripcionController.aytoGet);
 
 
 //router.get('/quizzes/new',                 quizController.new);

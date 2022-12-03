@@ -63,13 +63,9 @@
          */
 
         let inscripciones = [];
-        <% if (rol==='admin'){ %>
-        if (localStorage.getItem('inscripciones')) inscripciones = JSON.parse(Aes.Ctr.decrypt(localStorage.getItem('inscripciones'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
-        <% } else if(rol==='lector'){ %>
-        if (localStorage.getItem('inscripcionesLector')) inscripciones = JSON.parse(Aes.Ctr.decrypt(localStorage.getItem('inscripcionesLector'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
-        <% } else if(rol==='ayto'){ %>
-        if (localStorage.getItem('inscripcionesAyto')) inscripciones = JSON.parse(Aes.Ctr.decrypt(localStorage.getItem('inscripcionesAyto'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
-        <% } %>
+        //para encriptar el localStorage
+        let keyStorage;
+        
         let aPresentar = [];
         ///barra de progreso
         let DatosProgreso = {
@@ -250,6 +246,17 @@
             let fechaIn = Atimestamp(diaIn, mesIn);
             let fechaFin = Atimestamp(diaFin, mesFin);
 
+            ///para recargar el localStorage correspondiente al usuario
+            <% if (rol==='admin'){ %>
+            keyStorage=calcMD5(JSON.stringify(clavesPrivadas))+calcMD5(document.getElementById('CAdmin').value);
+            if (localStorage.getItem('inscripciones')) inscripciones = JSON.parse(Aes.Ctr.decrypt(localStorage.getItem('inscripciones'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+            <% } else if(rol==='lector'){ %>
+            keyStorage=calcMD5(JSON.stringify(clavesPrivadas))+calcMD5(document.getElementById('CAdmin').value);
+            if (localStorage.getItem('inscripcionesLector')) inscripciones = JSON.parse(Aes.Ctr.decrypt(localStorage.getItem('inscripcionesLector'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+            <% } else if(rol==='ayto'){ %>
+            keyStorage=calcMD5(JSON.stringify(clavesPrivadas));
+            if (localStorage.getItem('inscripcionesAyto')) inscripciones = JSON.parse(Aes.Ctr.decrypt(localStorage.getItem('inscripcionesAyto'), 'MIIJKAIBAAKCAgEAu5AeYQ8ZtSQI8585cCQS0Hh0WO6+Tj7lMcXqMsbegxOpd0Vo', 256));
+            <% } %>
 
             //para gestionar la autenticacion:
             let key_yincana;           
@@ -857,7 +864,7 @@ tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
         </select>
 
         BORRA LO GUARDADO: <input type="button" value="borra"
-            onclick="localStorage.removeItem('inscripciones');alert(localStorage.getItem('inscripciones'))">
+            onclick="localStorage.removeItem('inscripcionesAyto');localStorage.removeItem('inscripcionesLector');localStorage.removeItem('inscripciones');inscripciones = [];">
         <br>
         QUITA LA SESION: <input type="button" value="borra la sesion" onclick="quitaSesionAdmin()">
     </div>

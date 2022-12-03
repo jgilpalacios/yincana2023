@@ -198,7 +198,7 @@ exports.adminUpdate = async (req, res, next) => {
     //if (req.session.admin) {//si no se es administrador
     //console.log('++++++++--------adminUpdate')
     let inscripciones = [];
-    let totalOperaciones=req.body.totalOperaciones;
+    let totalOperaciones = req.body.totalOperaciones;
     for (i in totalOperaciones) {
         if (totalOperaciones[i][0] === 'ESTADO') {
             if (!inscripciones[totalOperaciones[i][1]]) inscripciones[totalOperaciones[i][1]] = {};
@@ -218,7 +218,7 @@ exports.adminUpdate = async (req, res, next) => {
             if (inscripciones[j]) {
 
                 let inscrip = await models.Inscripcion.findByPk(j);
-                
+
                 await pasaAHistorico(inscrip);
                 //console.log('++++++',JSON.stringify(inscrip));
                 //for (k in item){
@@ -288,121 +288,112 @@ exports.adminDesplaza = async (req, res, next) => {
     }
 }
 
+//se chequea si la sesion se establecio como admin
+//para el acceso a los middelware restringidos.
 exports.sesionRolAdmin = async (req, res, next) => {
-    req.session.roles=['admin'];
-    next();
+    //req.session.roles=['admin'];
+    if (req.session.admin) next();
+    else res.send({ autorizado: false })
 }
-exports.sesionRolTodos = async (req, res, next) => {
-    req.session.roles=['admin','lector','ayto'];
+/*exports.sesionRolTodos = async (req, res, next) => {
+    req.session.roles = ['admin', 'lector', 'ayto'];
     next();
 }
 exports.sesionEstablece = async (req, res, next) => {
-    req.body.estableceSesion=true;
+    req.body.estableceSesion = true;
     next();
-}
+}*/
 
 exports.ponSesionUser = async (req, res, next) => {
-    //console.log('++++++-----admin: ' + req.session.admin + ' lector: ' + req.session.lector + ' ayto: ' + req.session.ayto);
-    //si hay sesion establecida
-    const estableceSesion=req.body.estableceSesion;
-    if(estableceSesion){//si se recarga la página de establecer, se borran para restablecerlas.
-        delete req.session.admin;
-        delete req.session.lector;
-        delete req.session.ayto;
-    }
-    if (req.session.admin) {
-        next();
-    } else if (req.session.lector) {
-        if (req.session.roles && req.session.roles.includes('lector')) next();
-        else res.send({ autorizado: false });
-    } else if (req.session.ayto) {
-        if (req.session.roles && req.session.roles.includes('ayto')) next();
-        else res.send({ autorizado: false });
-    } else {
-
-        //si no hay sesion
-        const { key_yincana, key_admin, key_lector, yincana } = req.body;
-        //acceder al listado esta abierto a los tres roles previstos.
-        let roles=['admin','lector','ayto'];//se recibián en el req del cliente pero no es seguro.
-        try {
-            let datosYincana = await models.Yincana.findByPk(yincana);
-            let yincanana_autorizada = datosYincana.MD5clavePrivada === key_yincana;
-            let user = 'ayto';
-            yincanana_autorizada = yincanana_autorizada && user === 'ayto';
-            if (key_admin) {
-                let rol = await models.Rol.findAll({
-                    where: {
-                        nombre: 'admin'
-                    }
-                });
-                user = 'admin';
-                yincanana_autorizada = yincanana_autorizada && rol[0].clave === key_admin;
-            }
-            if (key_lector) {
-                let rol = await models.Rol.findAll({
-                    where: {
-                        nombre: 'lector'
-                    }
-                });
-                user = 'lector';
-                yincanana_autorizada = yincanana_autorizada && rol[0].clave === key_lector;
-            }
-            yincanana_autorizada = yincanana_autorizada && roles.includes(user);
-            if (user === 'ayto') {
-                if (req.session.ayto) {
-                    if (!yincanana_autorizada) {
-                        delete req.session.ayto;
-                        res.send({ autorizado: false });
-                    }
-                } else {
-                    if (yincanana_autorizada) {
-                        req.session.ayto = true;
-                        req.session.roles = roles;
-                        next();
-                    } else {
-                        delete req.session.ayto;
-                        res.send({ autorizado: false });
-                    }
-                }
-            } else if (user === 'lector') {
-                if (req.session.lector) {
-                    if (!yincanana_autorizada) {
-                        delete req.session.lector;
-                        res.send({ autorizado: false });
-                    }
-                } else {
-                    if (yincanana_autorizada) {
-                        req.session.lector = true;
-                        req.session.roles = roles;
-                        next();
-                    } else {
-                        delete req.session.lector;
-                        res.send({ autorizado: false });
-                    }
-                }
-            } else if (user === 'admin') {
-                if (req.session.admin) {
-                    if (!yincanana_autorizada) {
-                        delete req.session.admin;
-                        res.send({ autorizado: false });
-                    }
-                } else {
-                    if (yincanana_autorizada) {
-                        req.session.admin = true;
-                        req.session.roles = roles;
-                        next();
-                    } else {
-                        delete req.session.admin;
-                        res.send({ autorizado: false });
-                    }
-                }
-            }
+    //Se borran las sesiones de usuario si se hubieran establecido anteriormente
+    delete req.session.admin;
+    delete req.session.lector;
+    delete req.session.ayto;
 
 
-        } catch (error) {
-            console.log(error);
+    //Se comprueban las credenciales para asignar la nueva sesion
+    const { key_yincana, key_admin, key_lector, yincana } = req.body;
+    //acceder al listado esta abierto a los tres roles previstos.
+    let roles = ['admin', 'lector', 'ayto'];//se recibián en el req del cliente pero no es seguro.
+    try {
+        let datosYincana = await models.Yincana.findByPk(yincana);
+        let yincanana_autorizada = datosYincana.MD5clavePrivada === key_yincana;
+        let user = 'ayto';
+        yincanana_autorizada = yincanana_autorizada && user === 'ayto';
+        if (key_admin) {
+            let rol = await models.Rol.findAll({
+                where: {
+                    nombre: 'admin'
+                }
+            });
+            user = 'admin';
+            yincanana_autorizada = yincanana_autorizada && rol[0].clave === key_admin;
         }
+        if (key_lector) {
+            let rol = await models.Rol.findAll({
+                where: {
+                    nombre: 'lector'
+                }
+            });
+            user = 'lector';
+            yincanana_autorizada = yincanana_autorizada && rol[0].clave === key_lector;
+        }
+        yincanana_autorizada = yincanana_autorizada && roles.includes(user);
+        if (user === 'ayto') {
+            if (req.session.ayto) {
+                if (!yincanana_autorizada) {
+                    delete req.session.ayto;
+                    res.send({ autorizado: false });
+                }
+            } else {
+                if (yincanana_autorizada) {
+                    req.session.ayto = true;
+                    req.session.roles = roles;
+                    next();
+                } else {
+                    delete req.session.ayto;
+                    res.send({ autorizado: false });
+                }
+            }
+        } else if (user === 'lector') {
+            if (req.session.lector) {
+                if (!yincanana_autorizada) {
+                    delete req.session.lector;
+                    res.send({ autorizado: false });
+                }
+            } else {
+                if (yincanana_autorizada) {
+                    req.session.lector = true;
+                    req.session.roles = roles;
+                    next();
+                } else {
+                    delete req.session.lector;
+                    res.send({ autorizado: false });
+                }
+            }
+        } else if (user === 'admin') {
+            if (req.session.admin) {
+                if (!yincanana_autorizada) {
+                    delete req.session.admin;
+                    res.send({ autorizado: false });
+                }
+            } else {
+                if (yincanana_autorizada) {
+                    req.session.admin = true;
+                    req.session.roles = roles;
+                    next();
+                } else {
+                    delete req.session.admin;
+                    res.send({ autorizado: false });
+                }
+            }
+        }
+
+
+    } catch (error) {
+        console.log(error);
     }
+
 
 }
 
