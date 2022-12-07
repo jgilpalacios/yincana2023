@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+    <html>
+      <head>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+        <title>roles</title>
+        <script type="text/javascript" src="../js/md5.js"></script>
+      </head>
+      <body>
+        <p>INTRODUCE LA CLAVE DE ADMINISTRADOR:<input id="clave" onmouseover="this.type='text'"
+            onmouseout="this.type='password'" type="password"></p>
+        <p>INTRODUCE LA NUEVA CLAVE DE ADMINISTRADOR (En blanco no se cambia):</p>
+        <input id="claveNueva" onmouseover="this.type='text'" onmouseout="this.type='password'" type="password">
+        repite la clave: <input id="repiteNueva" onmouseover="this.type='text'"
+          type="password" onmouseout="this.type='password'"> <br>
+        <p>INTRODUCE LA NUEVA CLAVE DE LECTOR (En blanco no se cambia):</p>
+        <input id="claveNuevaLector" onmouseover="this.type='text'" type="password" onmouseout="this.type='password'">
+        repite la clave: <input id="repiteNuevalector" onmouseover="this.type='text'"
+          type="password" onmouseout="this.type='password'">
+        <p><br>
+        </p>
+        <input value="enviar" name="enviar" type="button" onclick="envia()">
+        <hr>
+        <p>INTRODUCE UNA POSIBLE CLAVE:</p>
+        <input id="clavePosible" onmouseover="this.type='text'" onmouseout="this.type='password'" type="password">
+        MD5 de la clave Posible (se almacena así): <input id="MD5Posible" onmouseover="this.type='text'"
+          type="password" onmouseout="this.type='password'" onclick="copiarAlPortapapeles(this.id)" title="Click la copia al portapapeles."> <br>
+          <input value="MD5" name="enviar" type="button" onclick="document.getElementById('MD5Posible').value=calcMD5(document.getElementById('clavePosible').value)">
+        </p>
+      </body>
+      <script type="text/javascript">
+        const envia = async ()=>{
+            let claves=['clave','claveNueva', 'repiteNueva','claveNuevaLector','repiteNuevalector'];
+            let objeto=[];
+            let error='';
+            let avisoAdmin='';
+            let avisoAdmin2='';
+            let avisoLector='';
+            let avisoLector2='';
+            claves.forEach(k => {
+                let aux={tipo:k, valor:document.getElementById(k).value.trim()}
+                objeto.push(aux);
+                if(k==='clave'&&document.getElementById(k).value.trim()===''){
+                    error+='La clave del administrador no puede estar vacia';
+                }
+                if(k==='claveNueva'&&document.getElementById(k).value.trim()===''){
+                    avisoAdmin+='La clave nueva del administrador no puede estar vacia';
+                }
+                if(k==='claveNueva'&&document.getElementById('repiteNueva').value.trim()!==document.getElementById(k).value.trim()){
+                    avisoAdmin2+='La clave nueva del administrador no coincide con la repeticion';
+                }
+                if(k==='claveNuevaLector'&&document.getElementById(k).value.trim()===''){
+                    avisoLector+='La clave nueva del lector no puede estar vacia';
+                }
+                if(k==='claveNuevaLector'&&document.getElementById('repiteNuevalector').value.trim()!==document.getElementById(k).value.trim()){
+                    avisoLector2+='La clave nueva del lector no coincide con la repeticion';
+                }
+                
+            });
+            //alert(error+'\n'+avisoAdmin+'\n'+avisoAdmin2+'\n'+avisoLector+'\n'+avisoLector2+'\n')
+            let seEnvia=true;
+            let operaciones={};
+            if(error!==''){
+                alert('Se debe introducir la clave del administrador')
+                seEnvia=false;
+            }else if(avisoAdmin2!==''){
+                alert(avisoAdmin2)
+                seEnvia=false;
+            }else if(avisoLector2!==''){
+                alert(avisoLector2)
+                seEnvia=false;
+            }else{
+                if(avisoAdmin===''&&avisoLector===''){
+                    //alert('se envian las dos:\n'+objeto[1].valor+': '+calcMD5(objeto[1].valor)+'\n'+objeto[3].valor+': '+calcMD5(objeto[3].valor))
+                    operaciones={clave:calcMD5(objeto[0].valor), admin:calcMD5(objeto[1].valor), lector:calcMD5(objeto[3].valor) }
+                }else if(avisoAdmin===''){
+                    //alert('Se envia admin'+calcMD5(objeto[1].valor))
+                    operaciones={clave:calcMD5(objeto[0].valor), admin:calcMD5(objeto[1].valor)}
+                }else if(avisoLector===''){
+                    //alert('Se envia lector'+calcMD5(objeto[3].valor))
+                    operaciones={clave:calcMD5(objeto[0].valor), lector:calcMD5(objeto[3].valor) }
+                }else{
+                    alert('Nada que enviar')
+                }
+            }
+            if(seEnvia){
+                //alert(getAbsolutePath() + '/update');
+                const miFetch = await fetch(getAbsolutePath() + '/update', {
+                    headers: {
+                        'Content-type': 'application/json'
+                    },
+                    method: 'POST',
+                    //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
+                    body: JSON.stringify({operaciones})
+                });
+                const json = await miFetch.json();
+                //alert(JSON.stringify(json))
+                if(json.autorizado){
+                    alert(json.cambios);
+                }else{
+                    alert('Clave de administrador erronena, no se registran los cambios.');
+                }
+            }
+
+        }
+
+        function getAbsolutePath() {
+            var loc = window.location;
+            var pathName = loc.pathname;//.substring(0, loc.pathname.lastIndexOf('/') + 1);
+            return loc.href.substring(0, loc.href.length - ((loc.pathname + loc.search + loc.hash).length - pathName.length));
+        }
+
+        const copiarAlPortapapeles = (id_elemento) => {
+            let aux = document.createElement("input");
+            aux.setAttribute("value", document.getElementById(id_elemento).value);
+            document.body.appendChild(aux);
+            aux.select();
+            document.execCommand("copy");
+            document.body.removeChild(aux);
+        }
+
+      </script>
+</html>

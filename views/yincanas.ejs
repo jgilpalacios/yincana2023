@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <title></title>
+</head>
+<script type="text/javascript" src="../js/md5.js"></script>
+<script src="../mijs/encriptador.js"></script>
+<script src="../js/jsencrypt.min.js"></script>
+
+<body>
+    <p>INTRODUCE LA CLAVE DE ADMINISTRADOR:<input id="clave" onmouseover="this.type='text'"
+            onmouseout="this.type='password'" type="password"><br>
+        Nueva yincana: <input value="+" name="+" type="button" onclick="nueva()"> Guarda los cambios y nuevas<input
+            value="enviar" name="enviar" type="button" onclick="envia()"><input value="archivosPublicas" name="archivosPublicas" type="button" onclick="archivosPublicas()"></p>
+            <!--<input value="pruebas" name="pruebas" type="button" onclick="pruebas()">-->
+    <% for(let i=0; i< yincanasActuales.length; i++){ %>
+        <hr>
+        <p> nombre: <input id="utilidad<%= yincanasActuales[i].id %>" value="<%= yincanasActuales[i].utilidad %>"
+                type="text"> Inicio del
+            nºSolicitud: <input size="4" id="nsol<%= yincanasActuales[i].id %>" value="<%= yincanasActuales[i].nsol %>"
+                type="text"> Editado: <input id="Editado<%= yincanasActuales[i].id %>" type="checkbox"></p>
+        <p>Clave Pública:<textarea
+                id="clavePublica<%= yincanasActuales[i].id %>"><%= yincanasActuales[i].clavePublica %></textarea><input
+                id="file-publica_<%= yincanasActuales[i].id %>" type="file"></p>
+        <p>Clave Privada:<textarea
+                id="clavePrivada<%= yincanasActuales[i].id %>"><%= yincanasActuales[i].MD5clavePrivada %></textarea><input
+                id="file-privada_<%= yincanasActuales[i].id %>" type="file"><input type="hidden"
+                id="id<%= yincanasActuales[i].id %>" value="<%= yincanasActuales[i].id %>"></p>
+        <% } %>
+            <hr>
+            <div id="yincanasnuevas">
+            </div>
+</body>
+<script languaje="javascript">
+/*let kakas='[1,2]';
+const pruebas = () => {alert('i');
+    let kks=JSON.parse(kakas);alert('ii');
+    kks.forEach(yi=>{
+        alert(yi);
+        alert(calcMD5(yi));
+        alert(yi.replace(/(\r|\n|\t)/gm,''));
+        alert(calcMD5(yi.replace(/(\r|\n|\t)/gm,'')));
+    })
+}*/
+    let yincanasNuevas=[];
+    let yincanasActuales =<%- JSON.stringify(yincanasActuales) %>;
+    let nYincanas =<%= yincanasActuales.length %>;
+    const nueva = () => {
+        nYincanas++;//se incrementa pues id es uno mas que el nº
+        let texto = `<hr>
+    <p> nombre: <input id="utilidad${nYincanas}" value="" type="text"> Inicio del
+      nºSolicitud: <input size="4" id="nsol${nYincanas}" value="" type="text"> Añadir: <input
+        id="add${nYincanas}" type="checkbox"></p>
+    <p>Clave Pública:<textarea id="clavePublica${nYincanas}"></textarea><input id="file-publica_${nYincanas}"
+        type="file"></p>
+    <p>Clave Privada:<textarea id="clavePrivada${nYincanas}"></textarea><input id="file-privada_${nYincanas}"
+        type="file"></p>`;
+        let spanYin = document.createElement('span');
+        spanYin.id = 'html' + nYincanas;
+        spanYin.innerHTML = texto;
+        document.getElementById('yincanasnuevas').appendChild(spanYin);
+       
+        ponEvento(`file-publica_${nYincanas}`);
+        ponEvento(`file-privada_${nYincanas}`);
+        yincanasNuevas.push({id:nYincanas});
+        //setTimeout(ponEvento, 1, `file-publica_${nYincanas}`);
+        //setTimeout(ponEvento, 2, `file-privada_${nYincanas}`);
+        //nYincanas++;
+    }
+   
+
+    const envia = async () => { //alert(yincanasActuales[0].utilidad);
+        let modificadas=[];
+        let nuevas=[];
+        if (document.getElementById('clave').value.trim() !== '') {
+            let correctas=true;
+            yincanasActuales.forEach(yi => {
+                if (document.getElementById('Editado' + yi.id).checked) {
+                    //alert('Se edita la yincana de '+yi.utilidad);
+                    yi.nsol = document.getElementById('nsol' + yi.id).value;
+                    yi.utilidad = document.getElementById('utilidad' + yi.id).value;
+                    alert( yi.nsol+'; '+yi.utilidad);
+                    if(compruebaClaves(yi.clavePublica,yi.MD5clavePrivada))alert(`En ${yi.utilidad} claves correctas`);
+                    else{
+                        alert(`En ${yi.utilidad} no concuerdan las claves`);
+                        correctas=false;
+                    }
+                    //alert(yi.MD5clavePrivada)
+                    //alert(yi.MD5clavePrivada.replace(/(\r\n|\n|\r)/gm,''))
+                    //alert(calcMD5(yi.MD5clavePrivada.replace(/(\r|\n|\t)/gm,'')));
+                    //alert(calcMD5(yi.MD5clavePrivada));
+                    //alert(calcMD5(document.getElementById('clavePrivada'+yi.id).innerHTML.replace(/(\r|\n|\t)/gm,'') ));
+                    modificadas.push(yi);
+                }
+            });
+            yincanasNuevas.forEach(yi => {
+                if (document.getElementById('add' + yi.id).checked) {
+                    //alert('Se edita la yincana de '+yi.utilidad);
+                    yi.nsol = document.getElementById('nsol' + yi.id).value;
+                    yi.utilidad = document.getElementById('utilidad' + yi.id).value;
+                    //alert( yi.nsol+'; '+yi.utilidad);
+                    if(compruebaClaves(yi.clavePublica,yi.MD5clavePrivada))alert(`En ${yi.utilidad} claves correctas`);
+                    else {
+                        alert(`En ${yi.utilidad} no concuerdan las claves`);
+                        correctas=false;
+                    }
+                    //alert(calcMD5(yi.MD5clavePrivada));
+                    nuevas.push(yi);
+                }
+            });
+            if(!correctas) alert('Ha habido fallos.')
+            else {alert('sisis');//preparamos los paquetes
+                modificadas.forEach(yi => {
+                    yi.MD5clavePrivada=calcMD5(yi.MD5clavePrivada.replace(/(\r|\n|\t)/gm,''));
+                    document.getElementById('clavePrivada'+yi.id).innerHTML=yi.MD5clavePrivada;
+                })
+                nuevas.forEach(yi => {
+                    yi.MD5clavePrivada=calcMD5(yi.MD5clavePrivada.replace(/(\r|\n|\t)/gm,''));
+                    document.getElementById('clavePrivada'+yi.id).innerHTML=yi.MD5clavePrivada;
+                })
+
+                const miFetch = await fetch(getAbsolutePath() + '/update', {
+                    headers: {
+                        'Content-type': 'application/json'
+                    },
+                    method: 'POST',
+                    //body: JSON.stringify({ id: 11, name: 'Rodrigo Díaz de Vivar', username: 'El Cid' })
+                    body: JSON.stringify({clave: calcMD5(document.getElementById('clave').value), modificadas, nuevas })
+                });
+                // Transforma la respuesta. En este caso lo convierte a JSON
+                const json = await miFetch.json();
+                if(json.autorizado){ 
+                    alert(json.texto)
+                }else alert('Clave del administrador erronea');
+            }
+
+            //alert('procedemos');
+        } else {
+            alert('Se debe introducir la contraseña de administrador');
+        }
+    }
+    //para comprobar si las claves son correctas
+    const compruebaClaves = (kpub, kpriv) => {
+        let textoPrueba = 'Texto de prueba';
+        let texCript = encriptakk(textoPrueba, kpub);
+        let texDecrp = desencriptakk(texCript, kpriv)
+        return textoPrueba === texDecrp;
+    }
+    const ponManejadoresFicheros = () => {
+        yincanasActuales.forEach(yi => {
+            //alert('file-publica' + yi.id);
+            ponEvento('file-publica_' + yi.id);
+            ponEvento('file-privada_' + yi.id);
+            //alert('file-privada' + yi.id);
+        })
+    }
+
+    function ponEvento(elemento) {//alert(elemento);
+        document.getElementById(elemento)
+            .addEventListener('change', leerArchivo, false);
+    }
+
+    function leerArchivo(e) {//alert(JSON.stringify(e))
+        var archivo = e.target.files[0];
+        let fuente=e.currentTarget;//alert(fuente.id)
+        let aux=fuente.id.split('_');
+        let auxId=aux[1];
+        let auxTipo=aux[0].split('-')[1];
+        //alert(auxId+' tipo: '+auxTipo);
+        if (!archivo) {
+            return;
+        }
+        var lector = new FileReader();
+        lector.onload = function (e) {
+            var contenido = e.target.result;
+            //mostrarContenido(contenido);
+            //alert(contenido);
+            let found = yincanasActuales.find(el => el.id === +auxId);
+            if(found){            
+            //alert(JSON.stringify(found))
+            if(auxTipo==='publica'){
+                found.clavePublica=contenido;
+                document.getElementById('clavePublica'+auxId).innerHTML=contenido;
+            }else  if(auxTipo==='privada'){
+                found.MD5clavePrivada=contenido;
+                document.getElementById('clavePrivada'+auxId).innerHTML=contenido;
+                if(compruebaClaves(found.clavePublica,found.MD5clavePrivada))alert('claves correctas');
+                else alert('No concuerdan las claves');
+            }
+            }else{
+                //alert(auxId+' tipo: '+auxTipo);
+                let elemento=yincanasNuevas.find(el => el.id === +auxId);
+                if(auxTipo==='publica'){
+                elemento.clavePublica=contenido;
+                document.getElementById('clavePublica'+auxId).innerHTML=contenido;
+                }else  if(auxTipo==='privada'){
+                elemento.MD5clavePrivada=contenido;
+                document.getElementById('clavePrivada'+auxId).innerHTML=contenido;
+                if(compruebaClaves(elemento.clavePublica,elemento.MD5clavePrivada))alert('claves correctas');
+                else alert('No concuerdan las claves');
+                }
+            }
+        };
+        lector.readAsText(archivo);
+    }
+    function getAbsolutePath() {
+        var loc = window.location;
+        var pathName = loc.pathname;//.substring(0, loc.pathname.lastIndexOf('/') + 1);
+        return loc.href.substring(0, loc.href.length - ((loc.pathname + loc.search + loc.hash).length - pathName.length));
+    }
+
+    const archivosPublicas=()=>{
+        alert('Lo guardamos');
+        let clavesOK=true;
+        let fallos='';
+        let textoClaves='[';
+        let textosAytos=[];
+        for (let i=0;i<yincanasActuales.length;i++){
+            if(!compruebaClaves(yincanasActuales[i].clavePublica, yincanasActuales[i].MD5clavePrivada)){
+                clavesOK=false;
+                fallos='No concuerdan las claves de la yincana de '+yincanasActuales[i].utilidad+', revisa si son correctas las que le siguen.'
+            }else{
+                let tyincana=JSON.stringify(yincanasActuales[i].MD5clavePrivada);
+                textoClaves+=tyincana;
+                if(i<yincanasActuales.length-1)textoClaves+=',';
+                let aux='[';//alert(aux);
+                for(let j=0;j<i;j++) aux+='"",';
+                aux+=tyincana;//alert(aux);
+                for(let j=i+1;j<yincanasActuales.length;j++)aux+=',""';
+                alert(aux);
+                aux+=']';//alert(i+'\n'+aux);
+                textosAytos.push({ayto:yincanasActuales[i].utilidad, clave:aux });
+            }
+        }
+        textoClaves+=']';
+        if (clavesOK){
+            let kk=JSON.parse(textoClaves);
+            alert(kk[0]);
+            compruebaClaves(yincanasActuales[0].clavePublica,kk[0])
+            descargarArchivo(generarBlob(textoClaves),'claves.txt');
+            textosAytos.forEach(ayto=>{
+                descargarArchivo(generarBlob(ayto.clave),ayto.ayto+'.txt');
+            })
+        } else alert(fallos);
+        /*yincanasActuales.forEach(yi => {
+            //alert('file-publica' + yi.id);
+            ponEvento('file-publica_' + yi.id);
+            ponEvento('file-privada_' + yi.id);
+            //alert('file-privada' + yi.id);
+        })
+        descargarArchivo(generarBlob('Esto contendrá las claves'),'nombre.txt');*/
+    }
+
+    const generarBlob = (datos) => {//alert('se entra');
+        let texto = [];    
+        texto.push(datos);
+        //El contructor de Blob requiere un Array en el primer parámetro
+        //así que no es necesario usar toString. el segundo parámetro
+        //es el tipo MIME del archivo
+        return new Blob(texto, {
+            type: 'text/plain'
+        });
+    };
+
+    const descargarArchivo = (contenidoEnBlob, nombreArchivo) => {
+        let reader = new FileReader();
+        reader.onload = function (event) {
+            let save = document.createElement('a');
+            save.href = event.target.result;
+            save.target = '_blank';
+            save.download = nombreArchivo || 'archivo.dat';
+            let clicEvent = new MouseEvent('click', {
+                'view': window,
+                'bubbles': true,
+                'cancelable': true
+            });
+            save.dispatchEvent(clicEvent);
+            (window.URL || window.webkitURL).revokeObjectURL(save.href);
+        };
+        reader.readAsDataURL(contenidoEnBlob);
+    };
+    //alert('++++');
+    ponManejadoresFicheros();
+    //alert('----');
+</script>
+
+</html>

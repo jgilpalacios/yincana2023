@@ -41,6 +41,17 @@ router.get('/:yincanaId(\\d+)/ayto', inscripcionController.ayto);
 //router.post('/:yincanaId(\\d+)/ayto/get', inscripcionController.ponSesionAyto,inscripcionController.aytoGet);
 router.post('/:yincanaId(\\d+)/ayto/get', inscripcionController.ponSesionUser,inscripcionController.aytoGet);
 
+router.get('/admin/roles', inscripcionController.roles);
+
+router.post('/admin/roles/update', inscripcionController.rolesUpdate);
+
+router.get('/admin/yincanas', inscripcionController.yincanas);
+
+router.post('/admin/yincanas/update', inscripcionController.yincanasUpdate);
+
+
+
+
 
 //router.get('/quizzes/new',                 quizController.new);
 //router.post('/quizzes',                    quizController.create);

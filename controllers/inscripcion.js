@@ -295,14 +295,6 @@ exports.sesionRolAdmin = async (req, res, next) => {
     if (req.session.admin) next();
     else res.send({ autorizado: false })
 }
-/*exports.sesionRolTodos = async (req, res, next) => {
-    req.session.roles = ['admin', 'lector', 'ayto'];
-    next();
-}
-exports.sesionEstablece = async (req, res, next) => {
-    req.body.estableceSesion = true;
-    next();
-}*/
 
 exports.ponSesionUser = async (req, res, next) => {
     //Se borran las sesiones de usuario si se hubieran establecido anteriormente
@@ -503,6 +495,142 @@ exports.aytoGet = async (req, res, next) => {
         console.log(error);
     }
 };
+
+
+exports.roles = async (req, res, next) => {
+    res.render('roles');
+    /*try {
+        let yincanas = await models.Yincana.findAll();
+        
+        res.render('admin', { yincanas, rol: 'lector' });
+    } catch (error) {
+        console.log(error);
+    }*/
+};
+
+exports.rolesUpdate = async (req, res, next) => {
+    //Se borran las sesiones de usuario si se hubieran establecido anteriormente
+    delete req.session.admin;
+    delete req.session.lector;
+    delete req.session.ayto;
+    //console.log('+++++++++++++++++ Se entra');
+
+    //Se recibe la clave para autorizar y las nuevas claves en su caso.
+    const { clave, admin, lector } = req.body.operaciones;
+    //acceder al listado esta abierto a los tres roles previstos.
+    try {
+        const t = await sequelize.transaction();
+        let rol_admin = await models.Rol.findAll({
+            where: {
+                nombre: 'admin'
+            }
+        });
+        //console.log('+++++++++++++++++ ', rol_admin[0].clave);
+        if (rol_admin === [] || rol_admin[0].clave === clave ) {///usuario autorizado se hacen los cambios
+            let cambios='';
+            if (admin) {//llega la nueva clave de administrador
+                rol_admin[0].clave = admin;
+                rol_admin[0].save();
+                cambios+='-Clave de administrador cambiada.\n';
+            }
+            if (lector) {//llega la nueva clave de lector
+                let rol_lector = await models.Rol.findAll({
+                    where: {
+                        nombre: 'lector'
+                    }
+                });
+                rol_lector[0].clave = lector;
+                rol_lector[0].save();
+                cambios+='-Clave de lector cambiada.\n';
+            }
+            t.commit();
+            res.send({ autorizado: true, cambios })
+        } else {
+            t.rollback();
+            res.send({ autorizado: false });
+        }
+
+    } catch (error) {
+        t.rollback();
+        console.log(error);
+    }
+}
+
+exports.yincanas = async (req, res, next) => {
+    try {
+        let yincanas = await models.Yincana.findAll();
+        let yincanasActuales=[];
+        yincanas.forEach(yi=>{
+            let aux={
+                id:yi.id,
+                nsol: yi.nsol,
+                utilidad: yi.utilidad,
+                clavePublica: yi.clavePublica,
+                MD5clavePrivada: yi.MD5clavePrivada
+            }
+            yincanasActuales.push(aux);
+        })
+        res.render('yincanas', { yincanasActuales });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.yincanasUpdate = async (req, res, next) => {
+    //Se borran las sesiones de usuario si se hubieran establecido anteriormente
+    delete req.session.admin;
+    delete req.session.lector;
+    delete req.session.ayto;
+    //console.log('+++++++++++++++++ Se entra');
+
+    //Se recibe la clave para autorizar y las nuevas claves en su caso.
+    const { clave, modificadas, nuevas } = req.body;
+    console.log('++++++++mod',JSON.stringify(modificadas),'\n-------nu',JSON.stringify(nuevas))
+    try {
+        const t = await sequelize.transaction();
+        let rol_admin = await models.Rol.findAll({
+            where: {
+                nombre: 'admin'
+            }
+        });
+        if(rol_admin[0].clave === clave){
+            let texto=''
+            let yincana;
+            //if(modificadas){
+                for (let i=0;i<modificadas.length;i++){
+                    yincana = await models.Yincana.findByPk(modificadas[i].id)
+                    yincana.nsol=+modificadas[i].nsol;
+                    yincana.utilidad=modificadas[i].utilidad;
+                    yincana.clavePublica=modificadas[i].clavePublica;
+                    yincana.MD5clavePrivada=modificadas[i].MD5clavePrivada;
+                    yincana.save();
+                    texto+='Modificada: '+yincana.utilidad+'; ';
+                }
+            /*}
+            if(nuevas){*/
+                for (let i=0;i<nuevas.length;i++){
+                    yincana = models.Yincana.build({
+                        nsol:+nuevas[i].nsol,
+                        utilidad:nuevas[i].utilidad,
+                        clavePublica:nuevas[i].clavePublica,
+                        MD5clavePrivada:nuevas[i].MD5clavePrivada
+                    });
+                    console.log('+++++......',yincana.utilidad)
+                    yincana.save();
+                    texto+='Creada: '+yincana.utilidad+'; ';
+                }
+            //}
+            t.commit();
+            res.send({ autorizado: true, texto });
+        }else{
+            t.rollback();
+            res.send({ autorizado: false });
+        }
+    } catch (error) {
+        t.rollback();
+        console.log(error);
+    }
+}
 
 
 /*const paginate = require('../helpers/paginate').paginate;

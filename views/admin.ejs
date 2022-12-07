@@ -261,7 +261,7 @@
             //para gestionar la autenticacion:
             let key_yincana;           
             clavesPrivadas.forEach((yi,i) => {
-                if(+yincana-1===i)key_yincana=calcMD5(yi);
+                if(+yincana-1===i)key_yincana=calcMD5(yi.replace(/(\r|\n|\t)/gm,''));
             })
             //alert(key_yincanas);
             <% if (rol==='admin'){ %>
@@ -915,10 +915,19 @@ tanda:'',partida:0,cuantas:2,seModificaIns:false,nfilas:0
         function mostrarContenido(contenido) {
             //var elemento = document.getElementById('contenido-archivo');
             var elemento = document.getElementById('cPrivada');
-            var n = contenido.length - 1;
-            elemento.innerHTML = contenido.substring(0, n);
+            //var n = contenido.length - 1;
+            elemento.innerHTML = contenido;//.substring(0, n);
             //lo pasamos a las claves privadas, sustituiría el de desencriptakk
-            clavesPrivadas = JSON.parse(contenido.substring(0, n))
+            //clavesPrivadas = JSON.parse(contenido.substring(0, n))
+            clavesPrivadas = JSON.parse(contenido);//.substring(0, n))
+            /*///
+            clavesPrivadas.forEach(yi=>{
+                alert(yi);
+                alert(calcMD5(yi));
+                alert(yi.replace(/(\r|\n|\t)/gm,''));
+                alert(calcMD5(yi.replace(/(\r|\n|\t)/gm,'')));
+            })
+            *////
         }
         ponEvento();
     </script>
